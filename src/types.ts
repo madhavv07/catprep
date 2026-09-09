@@ -11,6 +11,7 @@ export interface UserProfile {
   mentor?: string;
   createdAt: string;
   lastLoginAt?: string;
+  currentPassword?: string;
 }
 
 export type CATSection = 'VARC' | 'DILR' | 'QUANTS';

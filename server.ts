@@ -13,6 +13,7 @@ import {
   executeTransaction,
   authenticateUser,
   enrollStudentInDb,
+  resetStudentPasswordInDb,
   deleteStudentFromDb,
   deleteAllTasksFromDb,
   resetCleanDatabase,
@@ -142,7 +143,10 @@ app.get('/api/db/students', (req, res) => {
   const snapshot = getDatabaseSnapshot();
   const students = Object.values(snapshot.users)
     .filter((u) => u.role === 'student')
-    .map(({ passwordHash, ...profile }) => profile);
+    .map(({ passwordHash, ...profile }) => ({
+      ...profile,
+      currentPassword: passwordHash,
+    }));
   return res.json(students);
 });
 
@@ -157,6 +161,21 @@ app.post('/api/db/students/enroll', async (req, res) => {
     return res.json({ success: true, student: profile });
   } catch (err: any) {
     return res.status(400).json({ success: false, error: err.message || 'Enrollment failed' });
+  }
+});
+
+// Admin Student Password Reset
+app.put('/api/db/students/:uid/password', async (req, res) => {
+  const uid = req.params.uid;
+  const { newPassword } = req.body;
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 6) {
+    return res.status(400).json({ success: false, error: 'A password with at least 6 characters is required.' });
+  }
+  try {
+    const updatedStudent = await resetStudentPasswordInDb(uid, newPassword);
+    return res.json({ success: true, student: updatedStudent });
+  } catch (err: any) {
+    return res.status(400).json({ success: false, error: err.message || 'Password update failed.' });
   }
 });
 

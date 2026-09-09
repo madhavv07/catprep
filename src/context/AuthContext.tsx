@@ -40,6 +40,10 @@ interface AuthContextType {
     mentor?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   deleteStudent: (uid: string) => Promise<{ success: boolean; error?: string }>;
+  resetStudentPassword: (
+    uid: string,
+    newPassword: string
+  ) => Promise<{ success: boolean; error?: string }>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
 
@@ -171,6 +175,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsed = JSON.parse(event.data);
           if (parsed.type === 'STUDENT_ENROLLED' && parsed.payload) {
             setStudents((prev) => [parsed.payload, ...prev.filter((s) => s.studentId !== parsed.payload.studentId)]);
+          } else if (parsed.type === 'STUDENT_PASSWORD_RESET' && parsed.payload) {
+            setStudents((prev) =>
+              prev.map((s) => (s.uid === parsed.payload.uid ? { ...s, currentPassword: parsed.payload.currentPassword } : s))
+            );
+          } else if (parsed.type === 'STUDENT_DELETED' && parsed.payload) {
+            setStudents((prev) => prev.filter((s) => s.uid !== parsed.payload.uid));
           } else if (parsed.type === 'DATABASE_RESET') {
             fetchStudents();
           }
@@ -296,35 +306,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     } catch (firebaseErr: any) {
       console.warn('Firebase Auth standard login attempt note:', firebaseErr.message);
-
-      // Graceful local development authentication fallback for student test sandbox
-      const isDevStudent = (rawClean === 'student' || rawClean.startsWith('cat2701')) && cleanPass === 'student123';
-
-      if (isDevStudent) {
-        const fallbackUid = `student_${rawClean}_01`;
-        const profile: UserProfile = {
-          uid: fallbackUid,
-          studentId: rawClean.toUpperCase(),
-          email: authEmail,
-          displayName: 'CAT 2027 Scholar',
-          role: 'student',
-          batchId: 'B-CAT2701',
-          mentor: 'Administrator',
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString(),
-        };
-        setUser(profile);
-        localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(profile));
-        try {
-          await setDoc(doc(db, 'users', fallbackUid), profile, { merge: true });
-        } catch (e) {}
-        return { success: true };
-      }
-
       return {
         success: false,
         error:
-          firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/wrong-password'
+          firebaseErr.code === 'auth/invalid-credential' || firebaseErr.code === 'auth/wrong-password' || firebaseErr.code === 'auth/user-not-found'
             ? 'Invalid credentials. Please verify your Student ID and Password.'
             : firebaseErr.message || 'Authentication failed.',
       };
@@ -440,6 +425,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
+  // Reset student password (Admin only)
+  const resetStudentPassword = async (
+    uid: string,
+    newPassword: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (user?.role !== 'admin') {
+      return { success: false, error: 'Unauthorized: Only administrators can reset student passwords.' };
+    }
+    const cleanPass = newPassword.trim();
+    if (!cleanPass || cleanPass.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    try {
+      const res = await fetch(`/api/db/students/${uid}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: cleanPass }),
+      });
+      const data = await res.json();
+      if (data.success && data.student) {
+        setStudents((prev) =>
+          prev.map((s) => (s.uid === uid ? { ...s, currentPassword: cleanPass } : s))
+        );
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Failed to update student password.' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error resetting student password.' };
+    }
+  };
+
   // Update profile
   const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (!user?.uid) return;
@@ -472,6 +489,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         enrollStudent,
         deleteStudent,
+        resetStudentPassword,
         updateUserProfile,
       }}
     >

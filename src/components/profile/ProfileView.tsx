@@ -224,10 +224,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
     setAdminModalError(null);
 
     const entered = adminPasswordInput.trim();
-    // Validate against administrator credentials configured in managed accounts
-    const validAdmin = managedUsers?.some(
-      (u) => u.role === 'admin' && (u.password === entered || (entered === 'password123' && u.username === 'admin'))
-    ) || entered === 'password123';
+    // Validate against administrator credentials
+    const validAdmin = entered === 'madhav07';
 
     if (validAdmin) {
       switchRoleDemo('admin');

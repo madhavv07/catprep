@@ -275,10 +275,38 @@ export async function enrollStudentInDb(payload: {
     state.users[uid] = newStudent;
 
     const { passwordHash, ...profile } = newStudent;
+    const enrolledWithPassword = { ...profile, currentPassword: cleanPass };
     return {
       state,
-      result: profile,
-      broadcastEvent: { type: 'STUDENT_ENROLLED', payload: profile },
+      result: enrolledWithPassword,
+      broadcastEvent: { type: 'STUDENT_ENROLLED', payload: enrolledWithPassword },
+    };
+  });
+}
+
+// Helper: Reset/Update Student Password (Admin control)
+export async function resetStudentPasswordInDb(
+  uid: string,
+  newPass: string
+): Promise<UserProfile & { currentPassword: string }> {
+  const cleanPass = newPass.trim();
+  if (!cleanPass || cleanPass.length < 6) {
+    throw new Error('Password must be at least 6 characters.');
+  }
+
+  return await executeTransaction((state) => {
+    if (!state.users[uid]) {
+      throw new Error(`Student account not found.`);
+    }
+
+    state.users[uid].passwordHash = cleanPass;
+    const { passwordHash, ...profile } = state.users[uid];
+    const updated = { ...profile, currentPassword: cleanPass };
+
+    return {
+      state,
+      result: updated,
+      broadcastEvent: { type: 'STUDENT_PASSWORD_RESET', payload: updated },
     };
   });
 }
