@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
@@ -287,6 +288,20 @@ const MainApp: React.FC = () => {
                     )}
                   </button>
                 </form>
+
+                {/* Access Request / Contact Notice */}
+                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center space-y-1">
+                  <p className="text-[11px] text-zinc-400">
+                    If you don't have access to it:
+                  </p>
+                  <a
+                    href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition group"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition" />
+                    <span>Mail mmgajjar07@gmail.com</span>
+                  </a>
+                </div>
 
                 {/* Card Footer Security Assurance */}
                 <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
