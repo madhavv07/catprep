@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrators collection record",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "addedAt": { "type": "string", "format": "date-time" },
+        "addedBy": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["uid", "email"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Global class assignment created by faculty/admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "subject": { "type": "string", "enum": ["VARC", "DILR", "QUANT"] },
+        "title": { "type": "string", "maxLength": 256 },
+        "shortDescription": { "type": "string", "maxLength": 500 },
+        "instructions": { "type": "string", "maxLength": 5000 },
+        "givenInLecture": { "type": "string", "maxLength": 128 },
+        "assignedDate": { "type": "string", "maxLength": 32 },
+        "deadlineDate": { "type": "string", "maxLength": 32 },
+        "deadlineTime": { "type": "string", "maxLength": 32 },
+        "submissionDate": { "type": "string", "maxLength": 32 },
+        "submissionLecture": { "type": "string", "maxLength": 128 },
+        "submissionMethod": { "type": "string", "maxLength": 256 },
+        "additionalNotes": { "type": "string", "maxLength": 2000 },
+        "priority": { "type": "string", "enum": ["Normal", "Important", "Urgent"] },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subject", "title", "instructions", "deadlineDate", "status"]
+    },
+    "TaskProgress": {
+      "title": "TaskProgress",
+      "description": "Individual student personal completion status for a class task",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "completed": { "type": "boolean" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["taskId", "userId", "completed"]
+    },
+    "Word": {
+      "title": "Word",
+      "description": "Personal saved vocabulary word",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "word": { "type": "string", "maxLength": 128 },
+        "meaning": { "type": "string", "maxLength": 1000 },
+        "secondaryMeaning": { "type": "string", "maxLength": 1000 },
+        "partOfSpeech": { "type": "string", "maxLength": 64 },
+        "pronunciation": { "type": "string", "maxLength": 128 },
+        "synonyms": { "type": "array" },
+        "antonyms": { "type": "array" },
+        "root": { "type": "string", "maxLength": 500 },
+        "exampleSentence": { "type": "string", "maxLength": 1000 },
+        "personalSentence": { "type": "string", "maxLength": 1000 },
+        "source": { "type": "string", "maxLength": 256 },
+        "difficulty": { "type": "string", "maxLength": 64 },
+        "confidence": { "type": "string", "enum": ["Shaky", "Medium", "Confident"] },
+        "testsCount": { "type": "number" },
+        "correctCount": { "type": "number" },
+        "incorrectCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "lastReviewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["word", "meaning", "confidence", "userId"]
+    },
+    "VocabularyTest": {
+      "title": "VocabularyTest",
+      "description": "Recorded result of a vocabulary test session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "accuracy": { "type": "number" },
+        "wordsTested": { "type": "array" },
+        "incorrectWords": { "type": "array" },
+        "questionTypes": { "type": "array" },
+        "difficulty": { "type": "string", "maxLength": 64 },
+        "date": { "type": "string", "format": "date-time" },
+        "recommendations": { "type": "string", "maxLength": 2000 }
+      },
+      "required": ["userId", "score", "totalQuestions", "accuracy", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/admins/{uid}": {
+      "schema": "Admin",
+      "description": "Admin access list for RBAC"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Global class assignments"
+    },
+    "/users/{uid}/taskProgress/{taskId}": {
+      "schema": "TaskProgress",
+      "description": "Per-user task completion tracking"
+    },
+    "/users/{uid}/words/{wordId}": {
+      "schema": "Word",
+      "description": "Personal saved vocabulary dictionary"
+    },
+    "/users/{uid}/vocabularyTests/{testId}": {
+      "schema": "VocabularyTest",
+      "description": "Personal vocabulary test history"
+    }
+  }
+}

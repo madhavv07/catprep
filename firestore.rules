@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User profile documents
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])));
+      allow delete: if isAdmin();
+
+      // Student Personal tasks: strictly private to this student
+      match /personalTasks/{taskId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Private student vocabulary dictionaries: strictly private to this student
+    match /dictionaries/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+
+      match /words/{wordId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // General class tasks (assigned by admin)
+    match /tasks/{taskId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Task assignments per student
+    match /taskAssignments/{assignmentId} {
+      allow read: if isSignedIn() && (isAdmin() || resource.data.studentUid == request.auth.uid);
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.studentUid == request.auth.uid);
+      allow update: if isAdmin() || (isSignedIn() && resource.data.studentUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Schedule activities (Canonical CAT Schedule)
+    match /scheduleActivities/{activityId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Public test metadata and question sets
+    match /tests/{testId} {
+      allow read: if isSignedIn() && (resource.data.studentUid == null || resource.data.studentUid == request.auth.uid || isAdmin());
+      allow create, update: if isAdmin() || (isSignedIn() && request.resource.data.studentUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Protected Test Answer Keys: completely inaccessible to client SDKs
+    match /testKeys/{testId} {
+      allow read, write: if false;
+    }
+
+    // Student Test Attempts and Results
+    match /testAttempts/{attemptId} {
+      allow read: if isSignedIn() && (resource.data.studentUid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.studentUid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // Real-time notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (resource.data.recipientUid == request.auth.uid || isAdmin());
+      allow update: if isSignedIn() && resource.data.recipientUid == request.auth.uid;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.recipientUid == request.auth.uid || isAdmin());
+    }
+
+    // Community discussion feed
+    match /communityPosts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.authorUid == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.authorUid == request.auth.uid || isAdmin());
+
+      // Normalized comments subcollection
+      match /comments/{commentId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && request.resource.data.authorUid == request.auth.uid;
+        allow update, delete: if isSignedIn() && (resource.data.authorUid == request.auth.uid || isAdmin());
+      }
+    }
+
+    // Administrative audit logs
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+  }
+}

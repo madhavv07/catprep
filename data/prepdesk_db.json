@@ -1,0 +1,252 @@
+{
+  "version": 3,
+  "lastModified": "2026-09-09T19:50:40.249Z",
+  "users": {
+    "admin_madhav": {
+      "uid": "admin_madhav",
+      "studentId": "MADHAV",
+      "email": "madhav@prepdesk.edu",
+      "displayName": "Madhav (Administrator)",
+      "role": "admin",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "createdAt": "2026-09-01T00:00:00.000Z",
+      "lastLoginAt": "2026-09-09T19:50:40.249Z",
+      "passwordHash": "madhav07"
+    }
+  },
+  "tasks": {},
+  "personalTasks": {},
+  "taskAssignments": {},
+  "scheduleActivities": {
+    "sched_2026_09_01": {
+      "id": "sched_2026_09_01",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-01",
+      "day": "Tuesday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "VARC",
+      "subtopicCode": "VA 1.1",
+      "topic": "Introduction to VARC",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_varc_intro_01"
+      ],
+      "notes": "Orientation to CAT Verbal Ability and Reading Comprehension nuances."
+    },
+    "sched_2026_09_03": {
+      "id": "sched_2026_09_03",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-03",
+      "day": "Thursday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "QUANTS",
+      "subtopicCode": "QA",
+      "topic": "Speed Maths",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_qa_speed_01"
+      ],
+      "notes": "Vedic techniques, fractional equivalents, squares/cubes drills."
+    },
+    "sched_2026_09_05": {
+      "id": "sched_2026_09_05",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-05",
+      "day": "Saturday",
+      "timeRange": "Special Event",
+      "startTime": "10:00",
+      "endTime": "13:00",
+      "section": "EVENT",
+      "subtopicCode": "EVENT",
+      "topic": "Teachers' Day Celebration",
+      "mode": "Offline",
+      "notes": "Academy orientation and interaction session."
+    },
+    "sched_2026_09_08": {
+      "id": "sched_2026_09_08",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-08",
+      "day": "Tuesday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "VARC",
+      "subtopicCode": "VA 1.2",
+      "topic": "Reading Comprehension: Reading for Purpose",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_varc_rc_purpose_01"
+      ],
+      "notes": "Identifying author tone, main idea vs supporting premise."
+    },
+    "sched_2026_09_10": {
+      "id": "sched_2026_09_10",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-10",
+      "day": "Thursday",
+      "timeRange": "Self-Study Break",
+      "startTime": "00:00",
+      "endTime": "23:59",
+      "section": "BREAK",
+      "subtopicCode": "BREAK",
+      "topic": "Break!!",
+      "mode": "Offline",
+      "notes": "Consolidate previous notes and complete pending personal revision targets."
+    },
+    "sched_2026_09_12": {
+      "id": "sched_2026_09_12",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-12",
+      "day": "Saturday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "DILR",
+      "subtopicCode": "LR 1.1+1.2",
+      "topic": "Types of Arrangements + Conditionality Grouping (1/3)",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_dilr_arrangements_01"
+      ],
+      "notes": "Linear & circular arrangements, bi-conditional clues, grid deduction."
+    },
+    "sched_2026_09_15": {
+      "id": "sched_2026_09_15",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-15",
+      "day": "Tuesday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "QUANTS",
+      "subtopicCode": "QA 1.5A",
+      "topic": "Percentages 1/2",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_qa_percentages_01"
+      ],
+      "notes": "Base changing, percentage multiplier factor, successive changes."
+    },
+    "sched_2026_09_17": {
+      "id": "sched_2026_09_17",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-17",
+      "day": "Thursday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "QUANTS",
+      "subtopicCode": "QA 1.5B",
+      "topic": "Percentages 2/2",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_qa_percentages_02"
+      ],
+      "notes": "Product constancy (Price × Consumption = Expenditure), advanced word problems."
+    },
+    "sched_2026_09_19": {
+      "id": "sched_2026_09_19",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-19",
+      "day": "Saturday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "VARC",
+      "subtopicCode": "VA 1.3",
+      "topic": "Reading Comprehension: Summary Questions 1/2",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_varc_summary_01"
+      ],
+      "notes": "Paragraph summary extraction, distractor elimination strategies."
+    },
+    "sched_2026_09_22": {
+      "id": "sched_2026_09_22",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-22",
+      "day": "Tuesday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "QUANTS",
+      "subtopicCode": "QA 1.7+1.8",
+      "topic": "Profit & Loss + SICI 1/3",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_qa_pnl_01"
+      ],
+      "notes": "Markup, discounts, faulty balances, effective rate of simple interest."
+    },
+    "sched_2026_09_24": {
+      "id": "sched_2026_09_24",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-24",
+      "day": "Thursday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "QUANTS",
+      "subtopicCode": "QA 1.7+1.8",
+      "topic": "Profit & Loss + SICI 2/3",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_qa_pnl_02"
+      ],
+      "notes": "Compound interest compounding intervals, installments, equivalent rate."
+    },
+    "sched_2026_09_26": {
+      "id": "sched_2026_09_26",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-26",
+      "day": "Saturday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "DILR",
+      "subtopicCode": "LR 1.1+1.2",
+      "topic": "Types of Arrangements + Conditionality Grouping (2/3)",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_dilr_arrangements_02"
+      ],
+      "notes": "Complex multi-variable arrangements and distribution matrices."
+    },
+    "sched_2026_09_29": {
+      "id": "sched_2026_09_29",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "date": "2026-09-29",
+      "day": "Tuesday",
+      "timeRange": "4:00 pm to 6:00 pm",
+      "startTime": "16:00",
+      "endTime": "18:00",
+      "section": "VARC",
+      "subtopicCode": "VA 1.3",
+      "topic": "Reading Comprehension: Summary Questions 2/2",
+      "mode": "Offline",
+      "linkedTaskIds": [
+        "task_varc_summary_02"
+      ],
+      "notes": "Philosophy & economics passage analysis, inference-based traps."
+    }
+  },
+  "feedPosts": {}
+}
