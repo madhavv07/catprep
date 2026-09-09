@@ -103,7 +103,7 @@ const MainApp: React.FC = () => {
   // 2. Beautiful, modern, high-aesthetic sign-in experience
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-12 text-zinc-100 selection:bg-emerald-500 selection:text-black relative overflow-hidden">
+      <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-10 text-zinc-100 selection:bg-emerald-500 selection:text-black relative overflow-y-auto">
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-[140px] pointer-events-none" />
@@ -209,6 +209,20 @@ const MainApp: React.FC = () => {
                     <p className="text-xs text-zinc-400 mt-1">
                       Enter your Student ID or Administrator credentials to continue
                     </p>
+                  </div>
+
+                  {/* Prominent High-Visibility Access Notice Callout */}
+                  <div className="p-3 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-xs flex items-center gap-3 text-zinc-200 shadow-sm">
+                    <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="leading-snug">
+                      <span className="text-zinc-300">If you don't have access to it, mail </span>
+                      <a
+                        href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
+                        className="text-emerald-400 font-extrabold hover:underline inline-flex items-center gap-0.5"
+                      >
+                        mmgajjar07@gmail.com
+                      </a>
+                    </div>
                   </div>
                 </div>
 

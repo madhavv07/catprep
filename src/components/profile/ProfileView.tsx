@@ -279,10 +279,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Username: <strong className="text-zinc-200 font-mono">{user?.username || 'student'}</strong> &bull; {user?.email || 'student@prepdesk.edu'}
+              ID: <strong className="text-zinc-200 font-mono">{user?.studentId || user?.displayName}</strong> &bull; {user?.email || 'student@prepdesk.edu'}
             </p>
-            <p className="text-[11px] text-zinc-500 mt-1">
-              Member since {formatDatePretty(user?.createdAt || new Date().toISOString())}
+            <p className="text-[11px] text-zinc-500 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Member since {formatDatePretty(user?.createdAt || new Date().toISOString())}</span>
+              <span>&bull;</span>
+              <a href="mailto:mmgajjar07@gmail.com" className="text-emerald-400 hover:underline font-medium">
+                Support: mmgajjar07@gmail.com
+              </a>
             </p>
           </div>
         </div>
