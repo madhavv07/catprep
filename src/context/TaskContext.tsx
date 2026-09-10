@@ -200,9 +200,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           setTasks(list);
           localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(list));
-          if (list.length > 0) {
-            localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: list, updatedAt: new Date().toISOString() }));
-          }
+          localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: list, updatedAt: new Date().toISOString() }));
         }
       }
     } catch (e) {}
@@ -252,10 +250,26 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       eventSource.addEventListener('update', (event) => {
         try {
           const parsed = JSON.parse(event.data);
+          if (parsed.type === 'ALL_TASKS_DELETED') {
+            setTasks([]);
+            setTaskAssignments({});
+            setTaskProgress({});
+            localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify([]));
+            localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: [], updatedAt: new Date().toISOString() }));
+            return;
+          }
+          if (parsed.type === 'TASK_DELETED' && parsed.payload?.id) {
+            setTasks((prev) => {
+              const next = prev.filter((t) => t.id !== parsed.payload.id);
+              localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(next));
+              localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: next, updatedAt: new Date().toISOString() }));
+              return next;
+            });
+            return;
+          }
           if (
             parsed.type === 'TASK_CREATED' ||
             parsed.type === 'TASK_UPDATED' ||
-            parsed.type === 'TASK_DELETED' ||
             parsed.type === 'DATABASE_RESET' ||
             parsed.type === 'DATABASE_RESTORED'
           ) {
@@ -507,6 +521,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks((prev) => {
       const nextTasks = prev.filter((t) => t.id !== taskId);
       localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(nextTasks));
+      localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: nextTasks, updatedAt: new Date().toISOString() }));
       return nextTasks;
     });
     try {
@@ -523,7 +538,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteAllTasks = async (): Promise<void> => {
     setTasks([]);
     setTaskAssignments({});
+    setTaskProgress({});
     localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify([]));
+    localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: [], updatedAt: new Date().toISOString() }));
     try {
       await fetch('/api/db/tasks/all/bulk', { method: 'DELETE' });
     } catch (e) {}

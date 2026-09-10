@@ -308,9 +308,10 @@ app.get('/api/db/personal-tasks', (req, res) => {
 });
 
 app.post('/api/db/personal-tasks', async (req, res) => {
-  const { studentUid, ...taskData } = req.body;
+  const studentUid = req.body.studentUid || req.body.userId;
+  const { ...taskData } = req.body;
   if (!studentUid) {
-    return res.status(400).json({ success: false, error: 'studentUid is required' });
+    return res.status(400).json({ success: false, error: 'studentUid or userId is required' });
   }
   const id = `ptask_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   const now = new Date().toISOString();
@@ -343,21 +344,37 @@ app.post('/api/db/personal-tasks', async (req, res) => {
 
 app.put('/api/db/personal-tasks/:id', async (req, res) => {
   const taskId = req.params.id;
-  const { studentUid, ...updates } = req.body;
+  const studentUid = req.body.studentUid || req.body.userId || (req.query.studentUid as string);
+  const { ...updates } = req.body;
   const now = new Date().toISOString();
 
   try {
     const result = await executeTransaction((state) => {
-      const list = state.personalTasks[studentUid] || [];
+      // If studentUid not given, search across all personal tasks
+      let targetUid = studentUid;
+      if (!targetUid) {
+        for (const [uid, pList] of Object.entries(state.personalTasks)) {
+          if (pList.some((t) => t.id === taskId)) {
+            targetUid = uid;
+            break;
+          }
+        }
+      }
+
+      if (!targetUid || !state.personalTasks[targetUid]) {
+        throw new Error(`Personal task ${taskId} not found`);
+      }
+
+      const list = state.personalTasks[targetUid];
       const idx = list.findIndex((t) => t.id === taskId);
       if (idx !== -1) {
         list[idx] = { ...list[idx], ...updates, updatedAt: now };
       }
-      state.personalTasks[studentUid] = list;
+      state.personalTasks[targetUid] = list;
       return {
         state,
         result: list[idx],
-        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid, taskId } },
+        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid: targetUid, taskId } },
       };
     });
     return res.json({ success: true, task: result });
@@ -368,12 +385,22 @@ app.put('/api/db/personal-tasks/:id', async (req, res) => {
 
 app.delete('/api/db/personal-tasks/:id', async (req, res) => {
   const taskId = req.params.id;
-  const studentUid = (req.query.studentUid as string) || (req.body?.studentUid as string);
+  const studentUid = (req.query.studentUid as string) || (req.body?.studentUid as string) || (req.body?.userId as string);
 
   try {
     await executeTransaction((state) => {
-      if (studentUid && state.personalTasks[studentUid]) {
-        state.personalTasks[studentUid] = state.personalTasks[studentUid].filter((t) => t.id !== taskId);
+      let targetUid = studentUid;
+      if (!targetUid) {
+        for (const [uid, pList] of Object.entries(state.personalTasks)) {
+          if (pList.some((t) => t.id === taskId)) {
+            targetUid = uid;
+            break;
+          }
+        }
+      }
+
+      if (targetUid && state.personalTasks[targetUid]) {
+        state.personalTasks[targetUid] = state.personalTasks[targetUid].filter((t) => t.id !== taskId);
       }
       return {
         state,

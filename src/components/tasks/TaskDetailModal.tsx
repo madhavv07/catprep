@@ -18,6 +18,7 @@ import {
   FolderDown,
   Globe,
   Compass,
+  Trash2,
 } from 'lucide-react';
 import { ClassTask, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
@@ -40,7 +41,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onEdit,
   isAdmin = false,
 }) => {
-  const { taskProgress, toggleTaskCompletion } = useTasks();
+  const { taskProgress, toggleTaskCompletion, deleteTask } = useTasks();
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [activePdfModal, setActivePdfModal] = useState<{ url: string; title: string; size?: string } | null>(null);
 
@@ -394,6 +395,22 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </button>
 
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <button
+                  onClick={async () => {
+                    if (window.confirm(`Are you sure you want to permanently delete "${task.title}"? This cannot be undone.`)) {
+                      onClose();
+                      await deleteTask(task.id);
+                    }
+                  }}
+                  className="px-3 py-2 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Delete this task permanently"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Task</span>
+                </button>
+              )}
+
               {isAdmin && onEdit && (
                 <button
                   onClick={() => {
