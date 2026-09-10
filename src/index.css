@@ -112,6 +112,7 @@
 
 .btn-glass:active {
   background: rgba(255, 255, 255, 0.06);
+  transform: scale(0.97);
   opacity: 0.9;
 }
 
@@ -122,7 +123,7 @@
   font-weight: 600;
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.35);
-  transition: background 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease, opacity 0.18s ease;
 }
 
 .btn-primary-glass:hover {
@@ -131,6 +132,7 @@
 }
 
 .btn-primary-glass:active {
+  transform: scale(0.97);
   opacity: 0.92;
 }
 
@@ -152,4 +154,144 @@
 /* 5. Tabular Figures for Clean Numerical Alignment */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   Motion Design System & Micro-Interactions
+   ========================================================================== */
+
+/* Route & View Entrance */
+@keyframes routeEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+.animate-route-entrance {
+  animation: routeEntrance 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Popovers & Dropdowns with Origin Spring */
+@keyframes popoverSpring {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(-4px) translateZ(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateZ(0);
+  }
+}
+
+.animate-popover-spring {
+  transform-origin: top right;
+  animation: popoverSpring 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Skeleton Wave Shimmer */
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.02) 25%,
+    rgba(255, 255, 255, 0.07) 37%,
+    rgba(255, 255, 255, 0.02) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+}
+
+/* Quiz Option Shake on Wrong Answer */
+@keyframes shakeError {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-shake {
+  animation: shakeError 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Quiz Option Emerald Pulse on Correct Answer */
+@keyframes correctPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-correct-pulse {
+  animation: correctPulse 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* SVG Checkmark Drawing */
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-checkmark-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: checkmarkDraw 0.28s ease-out forwards;
+}
+
+/* Ambient Halo Pulse for Initial Splash Screen */
+@keyframes haloPulse {
+  0%, 100% {
+    transform: scale(1) translateZ(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.15) translateZ(0);
+    opacity: 0.7;
+  }
+}
+
+.animate-halo-pulse {
+  animation: haloPulse 3s ease-in-out infinite;
+}
+
+/* Stagger Animation Delays */
+.stagger-1 {
+  animation-delay: 35ms;
+}
+.stagger-2 {
+  animation-delay: 70ms;
+}
+.stagger-3 {
+  animation-delay: 105ms;
+}
+.stagger-4 {
+  animation-delay: 140ms;
 }

@@ -17,6 +17,7 @@ import { TaskStatisticsView } from './components/admin/TaskStatisticsView';
 import { ProfileView } from './components/profile/ProfileView';
 import { FeedView } from './components/feed/FeedView';
 import { CustomCursor } from './components/common/CustomCursor';
+import { SplashScreen } from './components/common/SplashScreen';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -86,19 +87,7 @@ const MainApp: React.FC = () => {
 
   // 1. Sleek loading screen while session is being verified
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4 text-zinc-100 selection:bg-emerald-500 selection:text-black">
-        <div className="flex flex-col items-center gap-4 animate-in fade-in duration-200">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center font-bold font-mono text-2xl shadow-lg shadow-emerald-500/20 animate-pulse">
-            P
-          </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>Connecting to PrepDesk CAT 2027...</span>
-          </div>
-        </div>
-      </div>
-    );
+    return <SplashScreen message="Connecting to PrepDesk CAT 2027..." />;
   }
 
   // 2. Beautiful, modern, high-aesthetic sign-in experience
@@ -351,36 +340,38 @@ const MainApp: React.FC = () => {
         />
 
         <main className="flex-1 min-w-0">
-          {activeView === 'dashboard' && <Dashboard setActiveView={setActiveView} />}
-          {(activeView === 'calendar' || activeView === 'schedule') && (
-            <StudyCalendar setActiveView={setActiveView} />
-          )}
-          {activeView === 'feed' && <FeedView setActiveView={setActiveView} />}
-          {activeView === 'varc-tasks' && <SubjectTasksView subject="VARC" setActiveView={setActiveView} onEditTask={handleEditTask} />}
-          {activeView === 'dilr-tasks' && <SubjectTasksView subject="DILR" setActiveView={setActiveView} onEditTask={handleEditTask} />}
-          {activeView === 'quant-tasks' && <SubjectTasksView subject="QUANT" setActiveView={setActiveView} onEditTask={handleEditTask} />}
-          {activeView === 'my-tasks' && <SubjectTasksView setActiveView={setActiveView} onEditTask={handleEditTask} />}
-          {(activeView === 'varc-vocab' || (activeView as any) === 'vocab-dict') && (
-            <VocabDictionary setActiveView={setActiveView} />
-          )}
-          {(activeView === 'varc-test' || (activeView as any) === 'vocab-test') && (
-            <VocabTest setActiveView={setActiveView} />
-          )}
-          {activeView === 'profile' && <ProfileView setActiveView={setActiveView} />}
-          {activeView === 'admin-create' && (
-            <CreateTaskView
-              setActiveView={setActiveView}
-              taskToEdit={taskToEdit}
-              onDone={handleCreateDone}
-            />
-          )}
-          {activeView === 'admin-manage' && (
-            <ManageTasksView setActiveView={setActiveView} onEditTask={handleEditTask} />
-          )}
-          {(activeView === 'admin-users' || activeView === 'admin-students') && (
-            <ManageAdminsView setActiveView={setActiveView} />
-          )}
-          {activeView === 'admin-stats' && <TaskStatisticsView setActiveView={setActiveView} />}
+          <div key={activeView} className="animate-route-entrance">
+            {activeView === 'dashboard' && <Dashboard setActiveView={setActiveView} />}
+            {(activeView === 'calendar' || activeView === 'schedule') && (
+              <StudyCalendar setActiveView={setActiveView} />
+            )}
+            {activeView === 'feed' && <FeedView setActiveView={setActiveView} />}
+            {activeView === 'varc-tasks' && <SubjectTasksView subject="VARC" setActiveView={setActiveView} onEditTask={handleEditTask} />}
+            {activeView === 'dilr-tasks' && <SubjectTasksView subject="DILR" setActiveView={setActiveView} onEditTask={handleEditTask} />}
+            {activeView === 'quant-tasks' && <SubjectTasksView subject="QUANT" setActiveView={setActiveView} onEditTask={handleEditTask} />}
+            {activeView === 'my-tasks' && <SubjectTasksView setActiveView={setActiveView} onEditTask={handleEditTask} />}
+            {(activeView === 'varc-vocab' || (activeView as any) === 'vocab-dict') && (
+              <VocabDictionary setActiveView={setActiveView} />
+            )}
+            {(activeView === 'varc-test' || (activeView as any) === 'vocab-test') && (
+              <VocabTest setActiveView={setActiveView} />
+            )}
+            {activeView === 'profile' && <ProfileView setActiveView={setActiveView} />}
+            {activeView === 'admin-create' && (
+              <CreateTaskView
+                setActiveView={setActiveView}
+                taskToEdit={taskToEdit}
+                onDone={handleCreateDone}
+              />
+            )}
+            {activeView === 'admin-manage' && (
+              <ManageTasksView setActiveView={setActiveView} onEditTask={handleEditTask} />
+            )}
+            {(activeView === 'admin-users' || activeView === 'admin-students') && (
+              <ManageAdminsView setActiveView={setActiveView} />
+            )}
+            {activeView === 'admin-stats' && <TaskStatisticsView setActiveView={setActiveView} />}
+          </div>
         </main>
       </div>
     </div>

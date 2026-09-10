@@ -360,9 +360,9 @@ export const VocabTest: React.FC<VocabTestProps> = ({ setActiveView }) => {
                     key={optIdx}
                     type="button"
                     onClick={() => selectOption(optIdx)}
-                    className={`w-full p-4 rounded-2xl border text-left transition flex items-start gap-3.5 group ${
+                    className={`w-full p-4 rounded-2xl border text-left transition-all duration-150 flex items-start gap-3.5 group cursor-pointer active:scale-[0.985] ${
                       isSelected
-                        ? 'bg-emerald-500/[0.12] border-emerald-500/50 shadow-sm ring-1 ring-emerald-500/30 text-emerald-200'
+                        ? 'bg-emerald-500/[0.12] border-emerald-500/50 shadow-sm ring-1 ring-emerald-500/30 text-emerald-200 animate-correct-pulse'
                         : 'glass-card border-white/[0.08] text-zinc-300 hover:border-white/[0.16] hover:bg-white/[0.05]'
                     }`}
                   >

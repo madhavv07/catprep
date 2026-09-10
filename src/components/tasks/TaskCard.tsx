@@ -103,7 +103,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       onClick={() => setIsModalOpen(true)}
-      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-300 group cursor-pointer ${
+      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.004] group cursor-pointer ${
         isCompleted
           ? 'opacity-70 border-white/[0.04] bg-white/[0.02]'
           : deadline.isOverdue
@@ -117,7 +117,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Header Badges & Completion Checkbox */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            {/* Checkbox */}
+            {/* Animated Checkbox Micro-Interaction */}
             <button
               onClick={handleToggle}
               className="group/btn shrink-0 mt-0.5 text-zinc-500 hover:text-emerald-400 transition-colors cursor-pointer"
@@ -125,9 +125,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               aria-label={isCompleted ? 'Mark as pending' : 'Mark as completed'}
             >
               {isCompleted ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/20" />
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-400/60 flex items-center justify-center text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                  <svg
+                    className="w-3.5 h-3.5 text-emerald-400 animate-checkmark-draw"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
               ) : (
-                <Circle className="w-5 h-5 text-zinc-600 group-hover/btn:text-emerald-400 transition-colors" />
+                <div className="w-5 h-5 rounded-full border border-zinc-600 group-hover/btn:border-emerald-400 group-hover/btn:bg-emerald-500/5 transition-all duration-150 flex items-center justify-center hover:scale-105" />
               )}
             </button>
 

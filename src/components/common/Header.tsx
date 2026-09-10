@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
 
             {/* Notification Dropdown Drawer */}
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 glass-panel rounded-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 glass-panel rounded-2xl p-4 z-50 animate-popover-spring shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-white tracking-tight">
@@ -276,7 +276,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
 
             {/* Profile Dropdown */}
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-56 glass-panel rounded-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 mt-2 w-56 glass-panel rounded-2xl p-2 z-50 animate-popover-spring shadow-2xl">
                 <div className="px-3 py-2 border-b border-white/[0.08]">
                   <p className="text-xs font-semibold text-white truncate">
                     {user?.displayName || 'PrepDesk Scholar'}

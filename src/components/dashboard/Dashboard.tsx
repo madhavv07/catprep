@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CheckCircle2,
   Clock,
@@ -25,6 +25,37 @@ import { ActiveView, Subject } from '../../types';
 interface DashboardProps {
   setActiveView: (view: ActiveView) => void;
 }
+
+const AnimatedCounter: React.FC<{ value: number; durationMs?: number }> = ({ value, durationMs = 600 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const startValue = 0;
+    const endValue = value;
+
+    if (endValue === 0) {
+      setDisplayValue(0);
+      return;
+    }
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / durationMs, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(startValue + (endValue - startValue) * easeOut));
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    const animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [value, durationMs]);
+
+  return <span>{displayValue}</span>;
+};
 
 export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
   const { user } = useAuth();
@@ -134,12 +165,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
         </div>
       )}
 
-      {/* 3. Summary Stat Cards (Apple / macOS Glass Widgets) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 3. Summary Stat Cards (Apple / macOS Glass Widgets with Stagger & Counters) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 animate-route-entrance stagger-1">
         {/* Pending Tasks */}
         <div
           onClick={() => setActiveView('my-tasks')}
-          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group"
+          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group hover:scale-[1.01] transition-transform duration-200"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
@@ -151,13 +182,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-semibold text-white tabular-nums">
-              {taskStats.pending}
+              <AnimatedCounter value={taskStats.pending} />
             </span>
             <span className="text-xs text-zinc-500 font-mono">of {taskStats.total} total</span>
           </div>
           <div className="mt-2.5 w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-emerald-400 h-1.5 rounded-full transition-all duration-500"
+              className="bg-emerald-400 h-1.5 rounded-full transition-all duration-700"
               style={{ width: `${taskStats.completionRate}%` }}
             />
           </div>
@@ -166,7 +197,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
         {/* Completed Tasks */}
         <div
           onClick={() => setActiveView('my-tasks')}
-          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group"
+          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group hover:scale-[1.01] transition-transform duration-200"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
@@ -178,7 +209,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
           </div>
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-semibold text-emerald-400 tabular-nums">
-              {taskStats.completed}
+              <AnimatedCounter value={taskStats.completed} />
             </span>
             <span className="text-xs font-mono font-medium text-emerald-400/80">{taskStats.completionRate}% done</span>
           </div>
@@ -188,7 +219,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
         {/* Due Soon 24h */}
         <div
           onClick={() => setActiveView('my-tasks')}
-          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group"
+          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group hover:scale-[1.01] transition-transform duration-200"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
@@ -204,7 +235,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
                 taskStats.dueSoon24h > 0 ? 'text-amber-400' : 'text-white'
               }`}
             >
-              {taskStats.dueSoon24h}
+              <AnimatedCounter value={taskStats.dueSoon24h} />
             </span>
             <span className="text-xs text-zinc-500">
               {taskStats.dueSoon24h === 1 ? 'task urgent' : 'tasks urgent'}
@@ -216,7 +247,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
         {/* Overdue */}
         <div
           onClick={() => setActiveView('my-tasks')}
-          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group"
+          className="glass-card p-4 sm:p-5 rounded-2xl cursor-pointer group hover:scale-[1.01] transition-transform duration-200"
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
@@ -238,7 +269,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
                 taskStats.overdue > 0 ? 'text-rose-400' : 'text-zinc-400'
               }`}
             >
-              {taskStats.overdue}
+              <AnimatedCounter value={taskStats.overdue} />
             </span>
             <span className="text-xs text-zinc-500">
               {taskStats.overdue === 0 ? 'All caught up' : 'Needs urgent action'}
@@ -248,11 +279,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
         </div>
       </div>
 
-      {/* 4. Dedicated Due Soon Section */}
-      <DueSoonSection setActiveView={setActiveView} />
+      {/* 4. Dedicated Due Soon Section with Stagger Delay */}
+      <div className="animate-route-entrance stagger-2">
+        <DueSoonSection setActiveView={setActiveView} />
+      </div>
 
-      {/* 5. Two-Column Layout: Class Tasks & VARC Personal Learning */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
+      {/* 5. Two-Column Layout: Class Tasks & VARC Personal Learning with Stagger Delay */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start animate-route-entrance stagger-3">
         {/* Left 2 Columns: Today's Class Tasks */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
