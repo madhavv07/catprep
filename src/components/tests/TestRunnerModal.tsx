@@ -295,22 +295,22 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
             <div className="lg:col-span-3 space-y-6">
               {/* Optional Context Pane (Reading Comprehension Passage or DILR Caselet) */}
               {currentQuestion.context && (
-                <div className="p-5 rounded-2xl bg-[#09090b] border border-zinc-800 shadow-xl space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="p-5 rounded-2xl glass-card space-y-2 max-h-[300px] overflow-y-auto">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider">
                     <BookOpen className="w-3.5 h-3.5" />
                     <span>Caselet / Reading Passage Context</span>
                   </div>
-                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-serif whitespace-pre-line">
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
                     {currentQuestion.context}
                   </p>
                 </div>
               )}
 
               {/* Question Statement Card */}
-              <div className="p-6 rounded-2xl bg-[#09090b] border border-zinc-800 shadow-xl space-y-6">
-                <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="p-6 rounded-2xl glass-card space-y-6">
+                <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
                   <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-emerald-500 text-black font-bold text-xs flex items-center justify-center">
+                    <span className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-xs flex items-center justify-center">
                       Q{currentIndex + 1}
                     </span>
                     <span className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">
@@ -322,8 +322,8 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                     onClick={handleToggleReview}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 border transition ${
                       markedForReview.has(currentQuestion.id)
-                        ? 'bg-purple-950 border-purple-500 text-purple-300'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                        ? 'bg-purple-500/20 border-purple-500/40 text-purple-300'
+                        : 'btn-glass text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     <Bookmark className="w-3.5 h-3.5" />
@@ -334,7 +334,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                 </div>
 
                 {/* Prompt */}
-                <h3 className="text-base sm:text-lg font-medium text-white leading-relaxed font-serif whitespace-pre-line">
+                <h3 className="text-base sm:text-lg font-medium text-white leading-relaxed tracking-tight whitespace-pre-line">
                   {currentQuestion.question}
                 </h3>
 
@@ -348,15 +348,15 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                         onClick={() => handleSelectOption(optIdx)}
                         className={`w-full p-4 rounded-xl border text-left transition flex items-start gap-3.5 ${
                           isSelected
-                            ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-xs'
-                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-300 hover:bg-zinc-850 hover:border-zinc-700'
+                            ? 'bg-emerald-500/[0.12] border-emerald-500/50 text-emerald-200 shadow-sm'
+                            : 'glass-card text-zinc-300 hover:border-white/[0.16] hover:bg-white/[0.05]'
                         }`}
                       >
                         <span
-                          className={`w-6 h-6 rounded-md font-bold text-xs flex items-center justify-center shrink-0 border ${
+                          className={`w-6 h-6 rounded-md font-bold text-xs flex items-center justify-center shrink-0 border transition ${
                             isSelected
-                              ? 'bg-emerald-500 border-emerald-500 text-black'
-                              : 'bg-zinc-800 border-zinc-700 text-zinc-400'
+                              ? 'bg-emerald-400 border-emerald-400 text-black shadow-xs'
+                              : 'bg-white/[0.06] border-white/[0.10] text-zinc-400'
                           }`}
                         >
                           {String.fromCharCode(65 + optIdx)}
@@ -675,13 +675,13 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
 
                     {/* Context if present */}
                     {item.context && (
-                      <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 text-xs text-zinc-400 font-serif leading-relaxed">
+                      <div className="p-3.5 glass-card rounded-xl text-xs text-zinc-300 leading-relaxed">
                         {item.context}
                       </div>
                     )}
 
                     {/* Statement */}
-                    <p className="text-sm font-medium text-white leading-relaxed font-serif whitespace-pre-line">
+                    <p className="text-sm font-semibold text-white tracking-tight leading-relaxed whitespace-pre-line">
                       {item.question}
                     </p>
 
@@ -691,11 +691,11 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                         const isOptionCorrect = optIdx === item.correctIndex;
                         const isUserOption = optIdx === item.userChoice;
 
-                        let badgeClass = 'bg-zinc-900/40 border-zinc-800 text-zinc-400';
+                        let badgeClass = 'bg-white/[0.03] border-white/[0.08] text-zinc-300';
                         if (isOptionCorrect) {
-                          badgeClass = 'bg-emerald-950/60 border-emerald-500 text-emerald-300 font-bold';
+                          badgeClass = 'bg-emerald-500/[0.12] border-emerald-500/40 text-emerald-300 font-semibold';
                         } else if (isUserOption) {
-                          badgeClass = 'bg-rose-950/60 border-rose-500 text-rose-300 font-bold';
+                          badgeClass = 'bg-rose-500/[0.12] border-rose-500/40 text-rose-300 font-semibold';
                         }
 
                         return (
@@ -718,23 +718,23 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
 
                     {/* Solution Explanation */}
                     {item.explanation && (
-                      <div className="p-3.5 bg-zinc-900/80 rounded-xl border border-zinc-800 text-xs text-zinc-300 leading-relaxed font-serif">
+                      <div className="p-3.5 glass-card rounded-xl text-xs text-zinc-300 leading-relaxed">
                         <span className="font-bold text-white block mb-0.5">Solution Analysis:</span>
                         {item.explanation}
                       </div>
                     )}
 
                     {/* AI Assist Action Buttons */}
-                    <div className="pt-2 border-t border-zinc-800/80 flex flex-wrap items-center gap-2">
+                    <div className="pt-2 border-t border-white/[0.08] flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider mr-1">
                         AI Study Assist:
                       </span>
                       <button
                         onClick={() => handleStudyAssist(item, 'explain_simply')}
                         disabled={assistLoading}
-                        className="px-2.5 py-1 rounded-lg text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition flex items-center gap-1"
+                        className="btn-glass px-2.5 py-1 rounded-lg text-xs text-zinc-300 transition flex items-center gap-1"
                       >
-                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                         Explain Simply
                       </button>
 
@@ -742,9 +742,9 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                         <button
                           onClick={() => handleStudyAssist(item, 'mistake_analysis')}
                           disabled={assistLoading}
-                          className="px-2.5 py-1 rounded-lg text-xs bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 transition flex items-center gap-1"
+                          className="btn-glass px-2.5 py-1 rounded-lg text-xs text-rose-300 border-rose-500/30 transition flex items-center gap-1"
                         >
-                          <Zap className="w-3 h-3 text-rose-400" />
+                          <Zap className="w-3.5 h-3.5 text-rose-400" />
                           Analyze My Mistake
                         </button>
                       )}
@@ -752,7 +752,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
 
                     {/* Assist Explanation Display */}
                     {assistQuestionId === item.questionId && (
-                      <div className="mt-2 p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-200 text-xs leading-relaxed space-y-1 animate-in fade-in duration-150">
+                      <div className="mt-2 p-3.5 rounded-xl glass-card border border-emerald-500/30 text-zinc-200 text-xs leading-relaxed space-y-1 animate-in fade-in duration-150">
                         <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px] uppercase tracking-wider">
                           <Sparkles className="w-3.5 h-3.5" />
                           AI Question Analysis
@@ -760,7 +760,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
                         {assistLoading ? (
                           <p className="text-zinc-400 italic">Formulating tailored breakdown...</p>
                         ) : (
-                          <p className="font-serif whitespace-pre-line text-zinc-200">{assistText}</p>
+                          <p className="whitespace-pre-line text-zinc-200">{assistText}</p>
                         )}
                       </div>
                     )}

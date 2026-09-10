@@ -15,12 +15,8 @@ import {
   Trash2,
   Send,
   EyeOff,
-  UserCheck,
-  Check,
   Maximize2,
   ExternalLink,
-  FolderDown,
-  Youtube
 } from 'lucide-react';
 import { ClassTask, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
@@ -50,18 +46,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const deadline = getDeadlineInfo(task.deadlineDate, task.deadlineTime, isCompleted);
   const detectedLinks = parseAllTaskLinks(task.instructions, task.attachmentUrl);
 
-  // Subject pill color
+  // Subject pill color - subtle translucent macOS glass pills
   const getSubjectBadge = (subject?: Subject) => {
     switch (subject) {
       case 'VARC':
-        return 'bg-emerald-950 text-emerald-400 border-emerald-800/60';
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       case 'DILR':
-        return 'bg-cyan-950 text-cyan-300 border-cyan-800/60';
+        return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20';
       case 'QUANT':
       case 'QUANTS':
-        return 'bg-violet-950 text-violet-300 border-violet-800/60';
+        return 'bg-violet-500/10 text-violet-300 border-violet-500/20';
       default:
-        return 'bg-zinc-900 text-zinc-300 border-zinc-700';
+        return 'bg-white/[0.06] text-zinc-300 border-white/[0.08]';
     }
   };
 
@@ -69,11 +65,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'Urgent':
-        return 'bg-rose-950 text-rose-400 border-rose-800/60 font-semibold';
+        return 'bg-rose-500/10 text-rose-400 border-rose-500/25 font-medium';
       case 'Important':
-        return 'bg-amber-950 text-amber-400 border-amber-800/60 font-medium';
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/25 font-medium';
       default:
-        return 'bg-zinc-900 text-zinc-400 border-zinc-800';
+        return 'bg-white/[0.04] text-zinc-400 border-white/[0.08]';
     }
   };
 
@@ -106,14 +102,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      className={`spotlight-card rounded-2xl border transition-all duration-200 bg-[#09090b] ${
+      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-300 group ${
         isCompleted
-          ? 'border-emerald-900/40 bg-zinc-950/70 opacity-80'
+          ? 'opacity-70 border-white/[0.04] bg-white/[0.02]'
           : deadline.isOverdue
-          ? 'border-rose-900/60 shadow-lg shadow-rose-950/20'
+          ? 'border-rose-500/30 bg-rose-500/[0.03] shadow-lg shadow-rose-950/20'
           : deadline.isDueToday
-          ? 'border-amber-800/60 shadow-lg shadow-amber-950/20'
-          : 'border-zinc-800 hover:border-zinc-700 shadow-xl'
+          ? 'border-amber-500/30 bg-amber-500/[0.03] shadow-lg shadow-amber-950/20'
+          : 'border-white/[0.08] hover:border-white/[0.16]'
       }`}
     >
       <div className="p-4 sm:p-5">
@@ -123,21 +119,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Checkbox */}
             <button
               onClick={handleToggle}
-              className="group shrink-0 mt-0.5 text-zinc-500 hover:text-emerald-400 transition"
+              className="group/btn shrink-0 mt-0.5 text-zinc-500 hover:text-emerald-400 transition-colors cursor-pointer"
               title={isCompleted ? 'Mark as pending' : 'Mark as completed'}
               aria-label={isCompleted ? 'Mark as pending' : 'Mark as completed'}
             >
               {isCompleted ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-950" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/20" />
               ) : (
-                <Circle className="w-5 h-5 text-zinc-600 group-hover:text-emerald-400" />
+                <Circle className="w-5 h-5 text-zinc-600 group-hover/btn:text-emerald-400 transition-colors" />
               )}
             </button>
 
             {/* Subject + Priority + Draft/Publish + Deadline pill */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <span
-                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${getSubjectBadge(
+                className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider ${getSubjectBadge(
                   task.section || task.subject
                 )}`}
               >
@@ -145,14 +141,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </span>
 
               {task.subtopic && (
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-zinc-400">
                   {task.subtopic}
                 </span>
               )}
 
               {task.priority !== 'Normal' && (
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded border ${getPriorityBadge(
+                  className={`text-[10px] px-2 py-0.5 rounded-md border ${getPriorityBadge(
                     task.priority
                   )}`}
                 >
@@ -161,23 +157,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               )}
 
               {task.status === 'draft' && (
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-800">
+                <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-white/[0.04] text-zinc-500 border border-white/[0.08]">
                   DRAFT
                 </span>
               )}
 
               {/* Deadline badge */}
               <span
-                className={`text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1 border ${
+                className={`text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border tabular-nums ${
                   isCompleted
-                    ? 'bg-emerald-950 text-emerald-400 border-emerald-800/60'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                     : deadline.badgeVariant === 'overdue'
-                    ? 'bg-rose-950 text-rose-400 border-rose-800/60 font-semibold'
+                    ? 'bg-rose-500/10 text-rose-400 border-rose-500/25 font-medium'
                     : deadline.badgeVariant === 'urgent'
-                    ? 'bg-amber-950 text-amber-300 border-amber-700 font-semibold'
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-medium'
                     : deadline.badgeVariant === 'warning'
-                    ? 'bg-amber-950/60 text-amber-400 border-amber-800/60'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                 }`}
               >
                 <Clock className="w-3 h-3 shrink-0" />
@@ -186,13 +182,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           </div>
 
-          {/* Admin quick delete, full inspector modal & expand toggle */}
+          {/* Action buttons */}
           <div className="flex items-center gap-1 shrink-0">
             {/* Inspect / Open Modal Button */}
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="p-1.5 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-950/30 rounded-lg transition shrink-0 cursor-pointer"
+              className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/[0.08] rounded-xl transition-colors shrink-0 cursor-pointer"
               title="Open full task inspector"
               aria-label="Open full task inspector"
             >
@@ -204,11 +200,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition shrink-0 cursor-pointer"
+                className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors shrink-0 cursor-pointer"
                 title={`Delete "${task.title}"`}
                 aria-label={`Delete "${task.title}"`}
               >
-                <Trash2 className="w-4 h-4 text-zinc-500 hover:text-rose-400" />
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
 
@@ -216,7 +212,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="p-1 text-zinc-500 hover:text-white rounded-lg hover:bg-zinc-850 transition shrink-0 cursor-pointer"
+              className="p-1 text-zinc-500 hover:text-white hover:bg-white/[0.08] rounded-xl transition-colors shrink-0 cursor-pointer"
               aria-label={expanded ? 'Collapse task details' : 'Expand task details'}
             >
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -228,12 +224,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="mt-3 pl-8">
           <h3
             onClick={() => setIsModalOpen(true)}
-            className={`text-base sm:text-lg font-bold text-white cursor-pointer hover:text-emerald-400 transition leading-snug flex items-center gap-2 group ${
+            className={`text-base sm:text-lg font-semibold text-white cursor-pointer hover:text-emerald-300 transition-colors leading-snug flex items-center gap-2 group/title ${
               isCompleted ? 'line-through text-zinc-500' : ''
             }`}
           >
             <span>{task.title}</span>
-            <Maximize2 className="w-3.5 h-3.5 text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0" />
+            <Maximize2 className="w-3.5 h-3.5 text-zinc-500 opacity-0 group-hover/title:opacity-100 transition shrink-0" />
           </h3>
 
           {task.shortDescription && (
@@ -245,21 +241,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {/* Key metadata chips */}
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-zinc-400 font-mono">
             {task.givenInLecture && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <BookOpen className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                 <span className="text-zinc-300">{task.givenInLecture}</span>
               </div>
             )}
 
             {task.submissionMethod && (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                 <span>{task.submissionMethod}</span>
               </div>
             )}
 
             {task.deadlineDate && (
-              <div className="flex items-center gap-1 text-zinc-400">
+              <div className="flex items-center gap-1.5 text-zinc-400 tabular-nums">
                 <Calendar className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                 <span>
                   Submit: {formatDatePretty(task.deadlineDate)} ({formatTime12h(task.deadlineTime)})
@@ -275,7 +271,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   e.stopPropagation();
                   setIsModalOpen(true);
                 }}
-                className="flex items-center gap-1 text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-md hover:bg-rose-500/20 transition cursor-pointer"
+                className="flex items-center gap-1.5 text-rose-300 bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/25 px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer text-xs"
               >
                 <FileText className="w-3 h-3 text-rose-400" />
                 <span>PDF Handout</span>
@@ -289,7 +285,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   e.stopPropagation();
                   setIsModalOpen(true);
                 }}
-                className="flex items-center gap-1 text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded-md hover:bg-sky-500/20 transition cursor-pointer"
+                className="flex items-center gap-1.5 text-sky-300 bg-sky-500/10 hover:bg-sky-500/15 border border-sky-500/25 px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer text-xs"
               >
                 <ExternalLink className="w-3 h-3 text-sky-400" />
                 <span>{detectedLinks.length} {detectedLinks.length === 1 ? 'Link' : 'Links'}</span>
@@ -300,42 +296,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Expandable Deep Details */}
         {expanded && (
-          <div className="mt-4 pt-4 border-t border-zinc-800 pl-8 space-y-3.5 text-xs text-zinc-300 animate-in fade-in duration-150 font-sans">
+          <div className="mt-4 pt-4 border-t border-white/[0.08] pl-8 space-y-3.5 text-xs text-zinc-300 animate-in fade-in duration-150 font-sans">
             {/* Full Instructions */}
             {task.instructions && (
               <div>
-                <h4 className="font-bold text-white text-[11px] uppercase tracking-wider mb-1">
+                <h4 className="font-semibold text-zinc-300 text-[11px] uppercase tracking-wider mb-1.5">
                   Task Instructions
                 </h4>
-                <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800 whitespace-pre-line leading-relaxed text-zinc-200">
+                <div className="p-3.5 bg-white/[0.03] rounded-xl border border-white/[0.06] whitespace-pre-line leading-relaxed text-zinc-200 select-text">
                   {task.instructions}
                 </div>
               </div>
             )}
 
             {/* Submission Logistics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-zinc-900/60 rounded-xl border border-zinc-800/80">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-white/[0.02] rounded-xl border border-white/[0.06]">
               <div>
-                <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">
+                <span className="text-[10px] uppercase font-semibold text-zinc-500 block mb-0.5">
                   Assigned Date
                 </span>
-                <span className="text-zinc-200 font-mono">
+                <span className="text-zinc-200 font-mono tabular-nums">
                   {formatDatePretty(task.assignedDate) || 'Not specified'}
                 </span>
               </div>
 
               <div>
-                <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">
+                <span className="text-[10px] uppercase font-semibold text-zinc-500 block mb-0.5">
                   Final Deadline
                 </span>
-                <span className="text-zinc-200 font-mono">
+                <span className="text-zinc-200 font-mono tabular-nums">
                   {formatDatePretty(task.deadlineDate)} at {formatTime12h(task.deadlineTime)}
                 </span>
               </div>
 
               {task.submissionLecture && (
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">
+                  <span className="text-[10px] uppercase font-semibold text-zinc-500 block mb-0.5">
                     Target Submission Lecture
                   </span>
                   <span className="text-zinc-200 font-mono">{task.submissionLecture}</span>
@@ -344,21 +340,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
               {task.createdByName && (
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-zinc-500 block mb-0.5">
+                  <span className="text-[10px] uppercase font-semibold text-zinc-500 block mb-0.5">
                     Admin Assigned
                   </span>
-                  <span className="text-white font-semibold">{task.createdByName}</span>
+                  <span className="text-white font-medium">{task.createdByName}</span>
                 </div>
               )}
             </div>
 
             {/* Additional Admin Notes */}
             {task.additionalNotes && (
-              <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/50 text-amber-300 text-xs">
-                <div className="flex items-start gap-1.5">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
+                <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold block mb-0.5">Admin Guidance / Advisory:</span>
+                    <span className="font-semibold block mb-0.5">Admin Guidance / Advisory:</span>
                     <span>{task.additionalNotes}</span>
                   </div>
                 </div>
@@ -367,11 +363,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Admin Controls Toolbar (if viewing in admin mode) */}
             {(showAdminControls || isAdmin) && (
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-800">
-                <div className="flex items-center gap-1.5">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.08]">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={handlePublishToggle}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 flex items-center gap-1 transition"
+                    className="btn-glass px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-200 flex items-center gap-1.5 cursor-pointer"
                   >
                     {task.status === 'published' ? (
                       <>
@@ -388,7 +384,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
                   <button
                     onClick={handleDuplicate}
-                    className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 flex items-center gap-1 transition"
+                    className="btn-glass px-3 py-1.5 rounded-xl text-xs font-medium text-zinc-200 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5 text-zinc-400" />
                     Duplicate
@@ -400,7 +396,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                         e.stopPropagation();
                         onEdit(task);
                       }}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 flex items-center gap-1 transition"
+                      className="btn-glass px-3 py-1.5 rounded-xl text-xs font-medium text-amber-300 flex items-center gap-1.5 cursor-pointer"
                     >
                       <Edit2 className="w-3.5 h-3.5 text-amber-400" />
                       Edit
@@ -411,7 +407,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-950/40 flex items-center gap-1 transition"
+                  className="px-3 py-1.5 rounded-xl text-xs font-medium text-rose-400 hover:bg-rose-500/10 transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Delete

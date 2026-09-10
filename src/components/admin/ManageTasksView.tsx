@@ -52,13 +52,13 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
               Administrator Controls
             </span>
             <span className="text-xs text-zinc-600">&bull;</span>
             <span className="text-xs text-zinc-400 font-medium">Assignment Control</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-100 tracking-tight mt-1">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
             Manage Class Tasks
           </h2>
           <p className="text-zinc-400 text-sm mt-1">
@@ -70,7 +70,7 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
           {tasks.length > 0 && (
             <button
               onClick={handleDeleteAll}
-              className="px-3.5 py-2.5 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/50 text-rose-300 font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+              className="px-3.5 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-rose-300 font-medium text-xs rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer"
               title="Delete all class tasks from database"
             >
               <Trash2 className="w-4 h-4 text-rose-400" />
@@ -80,7 +80,7 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
 
           <button
             onClick={() => setActiveView('admin-create')}
-            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0 cursor-pointer"
+            className="btn-primary-glass px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Create New Task</span>
@@ -89,30 +89,30 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 p-4 bg-zinc-950 rounded-2xl border border-zinc-800/80 shadow-2xs">
+      <div className="glass-card grid grid-cols-3 gap-3 p-4 rounded-2xl border border-white/[0.08]">
         <div>
-          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">
+          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
             Total Class Tasks
           </span>
-          <span className="text-xl font-serif font-bold text-zinc-100 mt-0.5 block">
+          <span className="text-2xl font-bold text-white tracking-tight tabular-nums mt-0.5 block">
             {tasks.length}
           </span>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+          <span className="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider block">
             Live / Published
           </span>
-          <span className="text-xl font-serif font-bold text-emerald-400 mt-0.5 block">
+          <span className="text-2xl font-bold text-emerald-400 tracking-tight tabular-nums mt-0.5 block">
             {publishedCount}
           </span>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">
+          <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block">
             Drafts
           </span>
-          <span className="text-xl font-serif font-bold text-zinc-400 mt-0.5 block">
+          <span className="text-2xl font-bold text-zinc-400 tracking-tight tabular-nums mt-0.5 block">
             {draftCount}
           </span>
         </div>
@@ -121,27 +121,27 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
       {/* Filter toolbar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3" />
+          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search class assignments..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            className="glass-input w-full pl-9 pr-4 py-2 text-xs rounded-xl"
           />
         </div>
 
         <div className="flex items-center gap-2 flex-wrap text-xs">
           {/* Subject Pills */}
-          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
             {(['ALL', 'VARC', 'DILR', 'QUANT'] as const).map((subj) => (
               <button
                 key={subj}
                 onClick={() => setSubjectFilter(subj)}
-                className={`px-3 py-1 rounded-lg font-medium transition ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   subjectFilter === subj
-                    ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-2xs font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.14] text-white border border-white/[0.18] shadow-xs font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {subj}
@@ -150,15 +150,15 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
           </div>
 
           {/* Status Pills */}
-          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
             {(['ALL', 'published', 'draft'] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1 rounded-lg font-medium transition capitalize ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all capitalize cursor-pointer ${
                   statusFilter === st
-                    ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-2xs font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.14] text-white border border-white/[0.18] shadow-xs font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {st === 'ALL' ? 'All Status' : st}
@@ -170,9 +170,9 @@ export const ManageTasksView: React.FC<ManageTasksViewProps> = ({
 
       {/* Task List */}
       {filteredTasks.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-zinc-950 border border-zinc-800/80 text-zinc-400">
+        <div className="p-12 text-center rounded-3xl glass-card border border-white/[0.08] text-zinc-400 space-y-2">
           <BookOpen className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
-          <p className="font-serif font-bold text-zinc-200 text-lg">No tasks found</p>
+          <p className="font-semibold text-white text-base">No tasks found</p>
           <p className="text-xs text-zinc-500 mt-1">
             Change your filter or click "Create New Task" to publish an assignment.
           </p>

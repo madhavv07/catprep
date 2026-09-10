@@ -137,41 +137,41 @@ const MainApp: React.FC = () => {
 
             {/* Feature Highlights Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-              <div className="p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 backdrop-blur-sm space-y-1.5 hover:border-zinc-700 transition">
+              <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Zap className="w-4 h-4" />
                 </div>
-                <h2 className="text-xs font-bold text-zinc-200">Real-Time Sync</h2>
+                <h2 className="text-xs font-bold text-white tracking-tight">Real-Time Sync</h2>
                 <p className="text-[11px] text-zinc-400 leading-normal">
                   Instant live push of schedule, syllabus milestones, and lecture exercises.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 backdrop-blur-sm space-y-1.5 hover:border-zinc-700 transition">
+              <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
                 <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
-                <h2 className="text-xs font-bold text-zinc-200">ACID Isolated Progress</h2>
+                <h2 className="text-xs font-bold text-white tracking-tight">ACID Isolated Progress</h2>
                 <p className="text-[11px] text-zinc-400 leading-normal">
                   Personalized task lists and test attempts kept strictly isolated per student.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 backdrop-blur-sm space-y-1.5 hover:border-zinc-700 transition">
+              <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                   <Target className="w-4 h-4" />
                 </div>
-                <h2 className="text-xs font-bold text-zinc-200">99.9%ile Curriculum</h2>
+                <h2 className="text-xs font-bold text-white tracking-tight">99.9%ile Curriculum</h2>
                 <p className="text-[11px] text-zinc-400 leading-normal">
                   High-yield editorial passages, logical arrangement sets, and quant drills.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-zinc-900/50 border border-zinc-800/80 backdrop-blur-sm space-y-1.5 hover:border-zinc-700 transition">
+              <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-300">
                   <BookOpen className="w-4 h-4" />
                 </div>
-                <h2 className="text-xs font-bold text-zinc-200">Vocab Vault & Lexical Engine</h2>
+                <h2 className="text-xs font-bold text-white tracking-tight">Vocab Vault & Lexical Engine</h2>
                 <p className="text-[11px] text-zinc-400 leading-normal">
                   Targeted CAT vocabulary dictionary, etymology, and contextual word mastery.
                 </p>
@@ -195,9 +195,9 @@ const MainApp: React.FC = () => {
           <div className="lg:col-span-5 w-full">
             <div className="relative group">
               {/* Subtle outer glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-transparent rounded-3xl blur-xl opacity-80 group-hover:opacity-100 transition duration-700" />
+              <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-700" />
 
-              <div className="relative bg-zinc-950/90 backdrop-blur-2xl rounded-3xl p-7 sm:p-9 border border-zinc-800 shadow-2xl space-y-6">
+              <div className="relative glass-panel rounded-3xl p-7 sm:p-9 shadow-2xl space-y-6">
                 {/* Brand Logo & Title */}
                 <div className="text-left space-y-3">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black flex items-center justify-center font-extrabold font-mono text-xl shadow-lg shadow-emerald-500/25">
@@ -213,7 +213,7 @@ const MainApp: React.FC = () => {
                   </div>
 
                   {/* Prominent High-Visibility Access Notice Callout */}
-                  <div className="p-3 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 text-xs flex items-center gap-3 text-zinc-200 shadow-sm">
+                  <div className="p-3 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/25 text-xs flex items-center gap-3 text-zinc-200 shadow-xs">
                     <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
                     <div className="leading-snug">
                       <span className="text-zinc-300">If you don't have access to it, mail </span>
@@ -243,7 +243,7 @@ const MainApp: React.FC = () => {
                         value={loginUsername}
                         onChange={(e) => setLoginUsername(e.target.value)}
                         placeholder="e.g. CAT2701-01 or madhav"
-                        className="w-full pl-10 pr-4 py-3 text-xs bg-zinc-900/90 border border-zinc-800 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 focus:bg-zinc-900 text-white placeholder:text-zinc-600 font-mono transition-all outline-none"
+                        className="w-full pl-10 pr-4 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
                         autoFocus
                         required
                       />
@@ -265,7 +265,7 @@ const MainApp: React.FC = () => {
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         placeholder="Enter your account password"
-                        className="w-full pl-10 pr-10 py-3 text-xs bg-zinc-900/90 border border-zinc-800 rounded-xl focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 focus:bg-zinc-900 text-white placeholder:text-zinc-600 font-mono transition-all outline-none"
+                        className="w-full pl-10 pr-10 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
                         required
                       />
                       <button
@@ -279,7 +279,7 @@ const MainApp: React.FC = () => {
                   </div>
 
                   {loginError && (
-                    <div className="p-3 bg-rose-950/60 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2 animate-in fade-in">
+                    <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2 animate-in fade-in">
                       <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                       <span>{loginError}</span>
                     </div>
@@ -288,11 +288,11 @@ const MainApp: React.FC = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-3.5 px-4 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 hover:opacity-95 disabled:opacity-50 text-black font-extrabold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
+                    className="w-full py-3.5 px-4 btn-primary-glass hover:opacity-95 disabled:opacity-50 font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2 font-mono">
-                        <span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                        <span className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
                         Verifying credentials...
                       </span>
                     ) : (
@@ -305,7 +305,7 @@ const MainApp: React.FC = () => {
                 </form>
 
                 {/* Access Request / Contact Notice */}
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center space-y-1">
+                <div className="p-3 rounded-xl glass-card text-center space-y-1">
                   <p className="text-[11px] text-zinc-400">
                     If you don't have access to it:
                   </p>
@@ -319,7 +319,7 @@ const MainApp: React.FC = () => {
                 </div>
 
                 {/* Card Footer Security Assurance */}
-                <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
+                <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-zinc-500">
                   <div className="flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5 text-emerald-500/70" />
                     <span>Protected Session</span>
@@ -335,7 +335,7 @@ const MainApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col font-sans antialiased text-zinc-100 selection:bg-emerald-500 selection:text-black">
+    <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-emerald-500/30 selection:text-white">
       <Header
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activeView={activeView}

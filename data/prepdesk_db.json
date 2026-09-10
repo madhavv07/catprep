@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "lastModified": "2026-09-10T09:10:13.569Z",
+  "version": 3,
+  "lastModified": "2026-09-10T09:31:26.618Z",
   "users": {
     "admin_madhav": {
       "uid": "admin_madhav",
@@ -15,7 +15,27 @@
       "passwordHash": "madhav07"
     }
   },
-  "tasks": {},
+  "tasks": {
+    "test_task_verify_001": {
+      "id": "test_task_verify_001",
+      "title": "RC Reading Passage on Quantum Consciousness",
+      "section": "VARC",
+      "subject": "VARC",
+      "topic": "Reading Comprehension",
+      "subtopic": "VA 1.2",
+      "instructions": "Read Aeon essay https://aeon.co/essays/quantum-mind and watch YouTube breakdown https://youtube.com/watch?v=123456 and sheets https://docs.google.com/spreadsheets/d/123",
+      "givenInLecture": "VA 1.2 (Reading for Purpose)",
+      "assignedDate": "2026-09-10",
+      "deadlineDate": "2026-09-15",
+      "deadlineTime": "16:00",
+      "submissionMethod": "Class Discussion",
+      "priority": "Important",
+      "status": "published",
+      "createdBy": "admin_madhav",
+      "createdAt": "2026-09-10T09:31:26.615Z",
+      "updatedAt": "2026-09-10T09:31:26.616Z"
+    }
+  },
   "personalTasks": {},
   "taskAssignments": {},
   "scheduleActivities": {

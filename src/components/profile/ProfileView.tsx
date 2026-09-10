@@ -257,22 +257,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16 animate-in fade-in duration-200">
       {/* 1. Header Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl glass-panel flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center font-bold text-2xl font-serif shadow-xs shrink-0">
+          <div className="w-16 h-16 rounded-2xl bg-white/[0.08] border border-white/[0.12] text-emerald-400 flex items-center justify-center font-bold text-2xl tracking-tight shadow-sm shrink-0">
             {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'P'}
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-serif font-bold text-zinc-100">
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 {user?.displayName || 'PrepDesk Scholar'}
               </h2>
               <span
                 className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
                   isAdmin
                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                    : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                    : 'bg-white/[0.06] text-zinc-400 border-white/[0.08]'
                 }`}
               >
                 {isAdmin ? 'Administrator' : 'Student'}
@@ -292,13 +292,10 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          {/* Role Switching Control:
-              - If user is base admin: allowed to toggle between Student view and Admin view freely
-              - If user is base student: require admin password verification to prevent unauthorized switching! */}
           {user?.role === 'admin' ? (
             <button
               onClick={() => switchRoleDemo(isAdmin ? 'student' : 'admin')}
-              className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 border border-zinc-800"
+              className="btn-glass px-4 py-2 text-zinc-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
             >
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
               <span>{isAdmin ? 'Preview as Student' : 'Return to Admin Mode'}</span>
@@ -306,7 +303,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
           ) : (
             <button
               onClick={() => setAdminModalOpen(true)}
-              className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 border border-zinc-800"
+              className="btn-glass px-3.5 py-2 text-zinc-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
               title="Requires administrator password"
             >
               <Lock className="w-3 h-3 text-zinc-400" />
@@ -316,7 +313,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
           <button
             onClick={signOut}
-            className="px-4 py-2 bg-rose-950/30 hover:bg-rose-900/40 text-rose-400 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 border border-rose-800/40"
+            className="btn-glass px-4 py-2 text-rose-400 hover:text-rose-300 border-rose-500/30 hover:bg-rose-500/[0.08] text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Sign Out</span>
@@ -326,47 +323,47 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
       {/* 2. Preparation Metrics Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-5 bg-zinc-950 rounded-2xl border border-zinc-800/80 shadow-2xs">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+        <div className="p-5 glass-card rounded-2xl">
+          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">
             Class Tasks Done
           </span>
-          <span className="text-3xl font-serif font-bold text-zinc-100 mt-2 block">
+          <span className="text-3xl font-bold text-white mt-2 block tabular-nums">
             {taskStats.completed}
           </span>
-          <span className="text-[11px] text-emerald-400 font-medium">
+          <span className="text-[11px] text-emerald-400 font-medium tabular-nums">
             {taskStats.completionRate}% completion rate
           </span>
         </div>
 
-        <div className="p-5 bg-zinc-950 rounded-2xl border border-zinc-800/80 shadow-2xs">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+        <div className="p-5 glass-card rounded-2xl">
+          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">
             Personal Targets
           </span>
-          <span className="text-3xl font-serif font-bold text-zinc-100 mt-2 block">
+          <span className="text-3xl font-bold text-white mt-2 block tabular-nums">
             {completedCount} / {personalTasks.length}
           </span>
-          <span className="text-[11px] text-amber-400 font-medium">
+          <span className="text-[11px] text-amber-400 font-medium tabular-nums">
             {pendingCount} pending today
           </span>
         </div>
 
-        <div className="p-5 bg-zinc-950 rounded-2xl border border-zinc-800/80 shadow-2xs">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+        <div className="p-5 glass-card rounded-2xl">
+          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">
             Vault Vocabulary
           </span>
-          <span className="text-3xl font-serif font-bold text-zinc-100 mt-2 block">
+          <span className="text-3xl font-bold text-white mt-2 block tabular-nums">
             {vocabStats.total}
           </span>
-          <span className="text-[11px] text-emerald-400 font-medium">
+          <span className="text-[11px] text-emerald-400 font-medium tabular-nums">
             {vocabStats.confident} confident words
           </span>
         </div>
 
-        <div className="p-5 bg-zinc-950 rounded-2xl border border-zinc-800/80 shadow-2xs">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider block">
+        <div className="p-5 glass-card rounded-2xl">
+          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block">
             Avg Test Accuracy
           </span>
-          <span className="text-3xl font-serif font-bold text-emerald-400 mt-2 block">
+          <span className="text-3xl font-bold text-emerald-400 mt-2 block tabular-nums">
             {testHistory.length > 0 ? `${avgAccuracy}%` : 'N/A'}
           </span>
           <span className="text-[11px] text-zinc-500">Exam drill average</span>
@@ -374,12 +371,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
       </div>
 
       {/* 3. MY PERSONAL TASKS & STUDY TARGETS */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
+      <div className="p-6 sm:p-8 rounded-3xl glass-panel space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
           <div>
             <div className="flex items-center gap-2">
               <ListTodo className="w-5 h-5 text-emerald-400" />
-              <h3 className="font-serif font-bold text-zinc-100 text-lg">
+              <h3 className="font-bold text-white tracking-tight text-lg">
                 My Personal Tasks & Study Planner
               </h3>
             </div>
@@ -390,12 +387,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
           <div className="flex items-center gap-2">
             {/* Filter Tabs */}
-            <div className="flex items-center bg-zinc-900 p-1 rounded-xl text-xs font-medium border border-zinc-800">
+            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl text-xs font-medium border border-white/[0.08]">
               <button
                 onClick={() => setTaskFilter('ALL')}
                 className={`px-3 py-1 rounded-lg transition ${
                   taskFilter === 'ALL'
-                    ? 'bg-zinc-800 text-emerald-400 font-semibold border border-emerald-500/30 shadow-2xs'
+                    ? 'bg-white/[0.14] text-white font-semibold border border-white/[0.20] shadow-xs'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -405,7 +402,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                 onClick={() => setTaskFilter('PENDING')}
                 className={`px-3 py-1 rounded-lg transition ${
                   taskFilter === 'PENDING'
-                    ? 'bg-zinc-800 text-emerald-400 font-semibold border border-emerald-500/30 shadow-2xs'
+                    ? 'bg-white/[0.14] text-white font-semibold border border-white/[0.20] shadow-xs'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -415,7 +412,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                 onClick={() => setTaskFilter('COMPLETED')}
                 className={`px-3 py-1 rounded-lg transition ${
                   taskFilter === 'COMPLETED'
-                    ? 'bg-zinc-800 text-emerald-400 font-semibold border border-emerald-500/30 shadow-2xs'
+                    ? 'bg-white/[0.14] text-white font-semibold border border-white/[0.20] shadow-xs'
                     : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
@@ -425,7 +422,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
             <button
               onClick={() => setIsAddingTask(!isAddingTask)}
-              className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0"
+              className="btn-primary-glass px-3.5 py-1.5 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{isAddingTask ? 'Cancel' : 'Add Task'}</span>
@@ -437,9 +434,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         {isAddingTask && (
           <form
             onSubmit={handleCreatePersonalTask}
-            className="p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-4 animate-in slide-in-from-top-2 duration-150"
+            className="p-5 rounded-2xl glass-card space-y-4 animate-in slide-in-from-top-2 duration-150"
           >
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
               <span className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
                 Create New Personal Task
               </span>
@@ -456,7 +453,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                   value={taskTitle}
                   onChange={(e) => setTaskTitle(e.target.value)}
                   placeholder="e.g. Solve 3 RC passages from 2022 CAT slot 1, or Revise Quadratic Equations"
-                  className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                  className="w-full px-3.5 py-2.5 text-xs glass-input text-zinc-100 placeholder-zinc-500 rounded-xl"
                   autoFocus
                 />
               </div>
@@ -469,7 +466,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                   <select
                     value={taskSubject}
                     onChange={(e) => setTaskSubject(e.target.value as any)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                    className="w-full px-3 py-2 text-xs glass-input text-zinc-200 rounded-xl"
                   >
                     <option value="General">General / All-round</option>
                     <option value="VARC">VARC</option>
@@ -485,7 +482,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                   <select
                     value={taskPriority}
                     onChange={(e) => setTaskPriority(e.target.value as TaskPriority)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                    className="w-full px-3 py-2 text-xs glass-input text-zinc-200 rounded-xl"
                   >
                     <option value="Normal">Normal</option>
                     <option value="Important">Important</option>
@@ -501,7 +498,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                     type="date"
                     value={taskDeadline}
                     onChange={(e) => setTaskDeadline(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                    className="w-full px-3 py-2 text-xs glass-input text-zinc-200 rounded-xl"
                   />
                 </div>
               </div>
@@ -515,13 +512,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                   value={taskNotes}
                   onChange={(e) => setTaskNotes(e.target.value)}
                   placeholder="e.g. Set timer for 30 minutes, focus on accuracy over speed"
-                  className="w-full px-3.5 py-2.5 text-xs bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                  className="w-full px-3.5 py-2.5 text-xs glass-input text-zinc-100 placeholder-zinc-500 rounded-xl"
                 />
               </div>
             </div>
 
             {taskFormError && (
-              <div className="p-2.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+              <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
                 <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                 <span>{taskFormError}</span>
               </div>
@@ -531,13 +528,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
               <button
                 type="button"
                 onClick={() => setIsAddingTask(false)}
-                className="px-3.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
+                className="btn-glass px-3.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                className="btn-primary-glass px-5 py-1.5 font-semibold text-xs rounded-xl transition flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Save Personal Task</span>
@@ -549,7 +546,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         {/* Task List */}
         <div className="space-y-2.5">
           {filteredPersonalTasks.length === 0 ? (
-            <div className="p-8 text-center text-zinc-500 text-xs rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-800 space-y-2">
+            <div className="p-8 text-center text-zinc-500 text-xs rounded-2xl glass-card border-dashed border-white/[0.12] space-y-2">
               <ListTodo className="w-8 h-8 text-zinc-600 mx-auto" />
               <p className="font-semibold text-zinc-300">No personal tasks in this filter</p>
               <p className="text-[11px] text-zinc-500">
@@ -565,8 +562,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                   key={t.id}
                   className={`p-4 rounded-2xl border transition flex items-start justify-between gap-3 ${
                     t.completed
-                      ? 'bg-zinc-950/80 border-zinc-900 opacity-60'
-                      : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 shadow-2xs'
+                      ? 'glass-card opacity-60 border-white/[0.04]'
+                      : 'glass-card hover:border-white/[0.16]'
                   }`}
                 >
                   <div className="flex items-start gap-3 min-w-0">
@@ -586,7 +583,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`font-serif font-bold text-sm tracking-tight ${
+                          className={`font-semibold text-sm tracking-tight ${
                             t.completed ? 'line-through text-zinc-500' : 'text-zinc-100'
                           }`}
                         >
@@ -602,7 +599,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                               ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
                               : t.subject === 'QUANT'
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+                              : 'bg-white/[0.06] text-zinc-300 border-white/[0.08]'
                           }`}
                         >
                           {t.subject || 'General'}
@@ -659,7 +656,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
                   <button
                     onClick={() => handleDeleteTask(t.id)}
-                    className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-zinc-900 transition shrink-0"
+                    className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-white/[0.06] transition shrink-0"
                     title="Delete personal task"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -672,16 +669,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
       </div>
 
       {/* 4. Test History Log */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+      <div className="p-6 sm:p-8 rounded-3xl glass-panel space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
           <div>
-            <h3 className="font-serif font-bold text-zinc-100 text-lg">Vocabulary Test History</h3>
+            <h3 className="font-bold text-white tracking-tight text-lg">Vocabulary Test History</h3>
             <p className="text-xs text-zinc-400">Record of your recent diagnostic tests and drills.</p>
           </div>
 
           <button
             onClick={() => setActiveView('vocab-test')}
-            className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            className="btn-primary-glass px-3.5 py-1.5 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Take Test</span>
@@ -698,26 +695,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
             {testHistory.map((t) => (
               <div
                 key={t.id}
-                className="p-3.5 rounded-2xl bg-zinc-900/70 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                className="p-3.5 rounded-2xl glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-zinc-100 font-serif">
+                    <span className="font-bold text-white tracking-tight tabular-nums">
                       Score: {t.score} / {t.totalQuestions} ({t.accuracy}%)
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-medium capitalize border border-zinc-750">
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-300 font-medium capitalize border border-white/[0.08]">
                       {t.difficulty}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-zinc-400 mt-0.5 tabular-nums">
                     Tested {t.wordsTested.length} words &bull; {t.incorrectWords.length} mistakes
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 text-zinc-400 text-[11px]">
+                <div className="flex items-center gap-3 text-zinc-400 text-[11px] tabular-nums">
                   <span>{formatDatePretty(t.date)}</span>
                   <span
-                    className={`font-semibold px-2 py-0.5 rounded-full border ${
+                    className={`font-semibold px-2.5 py-0.5 rounded-full border ${
                       t.accuracy >= 80
                         ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                         : t.accuracy >= 60
@@ -736,14 +733,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
 
       {/* Admin Password Verification Modal */}
       {adminModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-zinc-950 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-zinc-800 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 text-emerald-400 flex items-center justify-center font-bold font-serif mx-auto shadow-md">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-white/[0.08] border border-white/[0.12] text-emerald-400 flex items-center justify-center font-bold mx-auto shadow-md">
               <Shield className="w-6 h-6" />
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-serif font-bold text-zinc-100">
+              <h3 className="text-lg font-bold text-white tracking-tight">
                 Administrator Verification
               </h3>
               <p className="text-xs text-zinc-400">
@@ -763,14 +760,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                     value={adminPasswordInput}
                     onChange={(e) => setAdminPasswordInput(e.target.value)}
                     placeholder="Enter password"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 font-mono transition"
+                    className="w-full pl-10 pr-3.5 py-2.5 text-xs glass-input text-zinc-100 placeholder-zinc-500 rounded-xl font-mono"
                     autoFocus
                   />
                 </div>
               </div>
 
               {adminModalError && (
-                <div className="p-2.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
                   <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                   <span>{adminModalError}</span>
                 </div>
@@ -784,13 +781,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
                     setAdminPasswordInput('');
                     setAdminModalError(null);
                   }}
-                  className="px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
+                  className="btn-glass px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition shadow-xs"
+                  className="btn-primary-glass px-5 py-2 font-semibold text-xs rounded-xl transition"
                 >
                   Verify & Access
                 </button>

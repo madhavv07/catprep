@@ -416,16 +416,16 @@ export const FeedView: React.FC<FeedViewProps> = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
       {/* 1. Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
               Student Public Chat & Feed
             </span>
             <span className="text-xs text-zinc-600">&bull;</span>
             <span className="text-xs text-zinc-400 font-medium">Real-Time Community</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-100 tracking-tight mt-1.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5">
             Assignment Inquiries & Community Feed
           </h1>
           <p className="text-zinc-400 text-xs sm:text-sm mt-1 leading-relaxed max-w-2xl">
@@ -435,7 +435,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
-          className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-2xl transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0"
+          className="btn-primary-glass px-5 py-2.5 rounded-2xl text-xs font-semibold flex items-center justify-center gap-2 shrink-0 cursor-pointer"
         >
           <MessageSquare className="w-4 h-4" />
           <span>{isFormOpen ? 'Close Form' : 'Ask or Post Question'}</span>
@@ -443,8 +443,8 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       </div>
 
       {/* 2. Quick Action Templates Bar */}
-      <div className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/80 flex flex-col sm:flex-row sm:items-center gap-2.5">
-        <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+      <div className="glass-card p-4 rounded-2xl border border-white/[0.08] flex flex-col sm:flex-row sm:items-center gap-2.5">
+        <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
           <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
           Quick Inquiries:
         </span>
@@ -456,7 +456,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 'Assignment & Deadlines'
               )
             }
-            className="px-2.5 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 hover:border-emerald-500/40 border border-zinc-800 text-zinc-300 rounded-lg transition text-left"
+            className="btn-glass px-3 py-1.5 text-xs text-zinc-300 hover:text-white rounded-xl text-left cursor-pointer"
           >
             📅 What assignments are due this week?
           </button>
@@ -467,7 +467,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 'QUANT'
               )
             }
-            className="px-2.5 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 hover:border-emerald-500/40 border border-zinc-800 text-zinc-300 rounded-lg transition text-left"
+            className="btn-glass px-3 py-1.5 text-xs text-zinc-300 hover:text-white rounded-xl text-left cursor-pointer"
           >
             ❓ Today's QUANT lecture doubt
           </button>
@@ -478,7 +478,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 'DILR'
               )
             }
-            className="px-2.5 py-1 text-xs bg-zinc-900 hover:bg-zinc-800 hover:border-emerald-500/40 border border-zinc-800 text-zinc-300 rounded-lg transition text-left"
+            className="btn-glass px-3 py-1.5 text-xs text-zinc-300 hover:text-white rounded-xl text-left cursor-pointer"
           >
             🧩 DILR practice question doubt
           </button>
@@ -487,13 +487,13 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
       {/* 3. New Post Form Modal/Card */}
       {isFormOpen && (
-        <div className="p-6 rounded-3xl bg-zinc-950 border border-emerald-500/40 shadow-xl space-y-4 animate-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-            <h3 className="font-serif font-bold text-zinc-100 text-base flex items-center gap-2">
+        <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-white/[0.12] shadow-2xl space-y-4 animate-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <h3 className="font-semibold text-white text-base flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-emerald-400" />
               Ask a Question or Post to Community
             </h3>
-            <span className="text-xs text-zinc-500">
+            <span className="text-xs text-zinc-400">
               Posting as: <strong className="text-zinc-200">{currentUserName}</strong> ({currentUserRole})
             </span>
           </div>
@@ -502,7 +502,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Question Title */}
               <div className="sm:col-span-2">
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                   Question / Post Title <span className="text-rose-400">*</span>
                 </label>
                 <input
@@ -510,20 +510,20 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. When is the DILR sets assignment due? or Question on Reading Comprehension"
-                  className="w-full px-3.5 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                  className="glass-input w-full px-3.5 py-2.5 text-xs rounded-xl"
                   autoFocus
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                   Category Tag
                 </label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as FeedCategory)}
-                  className="w-full px-3.5 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60 font-medium transition"
+                  className="glass-input w-full px-3.5 py-2.5 text-xs rounded-xl font-medium cursor-pointer"
                 >
                   <option value="Assignment & Deadlines">Assignment & Deadlines</option>
                   <option value="Doubt & Discussion">Doubt & Discussion</option>
@@ -537,7 +537,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
             {/* Content Body */}
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 Details / Question Description <span className="text-rose-400">*</span>
               </label>
               <textarea
@@ -545,23 +545,23 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Provide all context here: mention the lecture number, specific question, what you tried, or what deadline you are inquiring about..."
                 rows={4}
-                className="w-full px-3.5 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                className="glass-input w-full px-3.5 py-2.5 text-xs rounded-xl leading-relaxed"
               />
             </div>
 
             {/* PDF Handout Attachment */}
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 Attach Study Material / Question Paper PDF (Optional)
               </label>
 
               {formPdf ? (
-                <div className="p-3 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex items-center justify-between gap-3">
+                <div className="p-3.5 rounded-2xl bg-rose-500/[0.06] border border-rose-500/20 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <FileText className="w-5 h-5 text-rose-400 shrink-0" />
                     <div className="min-w-0">
                       <p className="text-xs font-semibold text-zinc-100 truncate">{formPdf.name}</p>
-                      <span className="text-[10px] text-zinc-400 font-mono">{formPdf.sizeFormatted}</span>
+                      <span className="text-[10px] text-zinc-400 font-mono tabular-nums">{formPdf.sizeFormatted}</span>
                     </div>
                   </div>
 
@@ -569,7 +569,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                     <button
                       type="button"
                       onClick={() => setActivePdfModal({ url: formPdf.url, title: formPdf.name, size: formPdf.sizeFormatted })}
-                      className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1 transition cursor-pointer"
+                      className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 flex items-center gap-1 transition-colors cursor-pointer"
                     >
                       <Eye className="w-3 h-3" />
                       Preview
@@ -577,7 +577,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                     <button
                       type="button"
                       onClick={() => setFormPdf(undefined)}
-                      className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                      className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                       title="Remove PDF"
                     >
                       <X className="w-4 h-4" />
@@ -586,7 +586,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 </div>
               ) : (
                 <div>
-                  <label className="border border-dashed border-zinc-800 hover:border-emerald-500/50 bg-zinc-900/30 hover:bg-zinc-900/60 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition">
+                  <label className="border border-dashed border-white/[0.12] hover:border-emerald-500/40 bg-white/[0.02] hover:bg-white/[0.04] rounded-xl p-3.5 flex items-center justify-center gap-2 cursor-pointer transition-colors">
                     <Upload className="w-4 h-4 text-zinc-400" />
                     <span className="text-xs text-zinc-300">
                       {isUploadingPdf ? 'Uploading PDF...' : 'Attach PDF document (Up to 25MB)'}
@@ -607,7 +607,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
             </div>
 
             {formError && (
-              <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-300 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
                 <span>{formError}</span>
               </div>
@@ -617,14 +617,14 @@ export const FeedView: React.FC<FeedViewProps> = () => {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
+                className="btn-glass px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 font-medium rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                className="btn-primary-glass px-6 py-2.5 text-xs font-semibold rounded-xl flex items-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{isSubmitting ? 'Posting...' : 'Post Question'}</span>
@@ -637,7 +637,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       {/* 4. Filters & Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
         {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none bg-white/[0.03] p-1 rounded-2xl border border-white/[0.08]">
           {(
             [
               'ALL',
@@ -652,10 +652,10 @@ export const FeedView: React.FC<FeedViewProps> = () => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-2xs font-semibold'
-                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-900 border border-zinc-800'
+                  ? 'bg-white/[0.14] text-white border border-white/[0.18] shadow-xs font-semibold'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               {cat === 'ALL' ? 'All Posts' : cat}
@@ -671,7 +671,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search inquiries & answers..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            className="glass-input w-full pl-8 pr-3 py-1.5 text-xs rounded-xl"
           />
         </div>
       </div>
@@ -679,15 +679,15 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       {/* 5. Posts Feed List */}
       <div className="space-y-4">
         {filteredPosts.length === 0 ? (
-          <div className="p-12 text-center rounded-3xl bg-zinc-950 border border-zinc-800/80 text-zinc-400 space-y-3">
-            <MessageSquare className="w-10 h-10 text-zinc-700 mx-auto" />
-            <h3 className="font-serif font-bold text-zinc-200 text-base">No discussions found in this view</h3>
+          <div className="p-12 text-center rounded-3xl glass-card border border-white/[0.08] text-zinc-400 space-y-3">
+            <MessageSquare className="w-10 h-10 text-zinc-600 mx-auto" />
+            <h3 className="font-semibold text-white text-base">No discussions found in this view</h3>
             <p className="text-xs text-zinc-500 max-w-sm mx-auto">
               Be the first to ask what assignments are due or post a question! Click the button above to start.
             </p>
             <button
               onClick={() => setIsFormOpen(true)}
-              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-semibold rounded-xl inline-flex items-center gap-2 transition shadow-xs"
+              className="btn-primary-glass px-4 py-2 text-xs font-semibold rounded-xl inline-flex items-center gap-2 cursor-pointer"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Ask First Question</span>
@@ -703,21 +703,21 @@ export const FeedView: React.FC<FeedViewProps> = () => {
             return (
               <div
                 key={post.id}
-                className={`rounded-3xl bg-zinc-950 border transition shadow-xs overflow-hidden ${
+                className={`glass-card rounded-3xl overflow-hidden transition-all duration-300 ${
                   post.isPinned
-                    ? 'border-emerald-500/50 ring-1 ring-emerald-500/30'
-                    : 'border-zinc-800/80 hover:border-zinc-700'
+                    ? 'border-emerald-500/30 bg-emerald-500/[0.02]'
+                    : 'border-white/[0.08] hover:border-white/[0.14]'
                 }`}
               >
-                <div className="p-5 sm:p-6 space-y-3">
+                <div className="p-5 sm:p-6 space-y-3.5">
                   {/* Top Bar: Author, Tag, Timestamp */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs font-serif shrink-0 ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
                           post.authorRole === 'admin'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-2xs'
-                            : 'bg-zinc-800 text-zinc-300'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+                            : 'bg-white/[0.06] text-zinc-300 border border-white/[0.08]'
                         }`}
                       >
                         {post.authorName.charAt(0).toUpperCase()}
@@ -725,147 +725,147 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-serif font-bold text-zinc-100 text-sm">
+                          <span className="font-semibold text-white text-sm">
                             {post.authorName}
                           </span>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.2 rounded-full uppercase tracking-wider border ${
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border ${
                               post.authorRole === 'admin'
-                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                                : 'bg-zinc-900 text-zinc-400 border-zinc-800'
+                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                : 'bg-white/[0.04] text-zinc-400 border-white/[0.08]'
                             }`}
                           >
                             {post.authorRole === 'admin' ? 'Administrator' : 'Student'}
                           </span>
                           {post.isPinned && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.2 rounded-full bg-emerald-500 text-black">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                               <Pin className="w-2.5 h-2.5 fill-current" /> Pinned
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-zinc-500 block mt-0.5">
+                        <span className="text-[11px] text-zinc-500 block mt-0.5 font-mono tabular-nums">
                           {formatRelativeTime(post.createdAt)}
                         </span>
                       </div>
                     </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${getCategoryBadgeClass(
-                            post.category
-                          )}`}
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider border ${getCategoryBadgeClass(
+                          post.category
+                        )}`}
+                      >
+                        {post.category}
+                      </span>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleTogglePin(post.id)}
+                          className={`p-1.5 rounded-xl transition-colors cursor-pointer ${
+                            post.isPinned
+                              ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30'
+                              : 'text-zinc-500 hover:text-amber-400 hover:bg-white/[0.06]'
+                          }`}
+                          title={post.isPinned ? 'Unpin announcement' : 'Pin to top of feed'}
                         >
-                          {post.category}
-                        </span>
+                          <Pin className={`w-3.5 h-3.5 ${post.isPinned ? 'fill-current' : ''}`} />
+                        </button>
+                      )}
 
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleTogglePin(post.id)}
-                            className={`p-1.5 rounded-lg transition ${
-                              post.isPinned
-                                ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30'
-                                : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-900'
-                            }`}
-                            title={post.isPinned ? 'Unpin announcement' : 'Pin to top of feed'}
-                          >
-                            <Pin className={`w-3.5 h-3.5 ${post.isPinned ? 'fill-current' : ''}`} />
-                          </button>
-                        )}
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDeletePost(post.id)}
+                          className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-xl hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Delete post"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-                        {canDelete && (
-                          <button
-                            onClick={() => handleDeletePost(post.id)}
-                            className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-zinc-900 transition"
-                            title="Delete post"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                  {/* Post Title */}
+                  <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight leading-snug">
+                    {post.title}
+                  </h3>
+
+                  {/* Post Content */}
+                  <p className="text-xs sm:text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed select-text">
+                    {post.content}
+                  </p>
+
+                  {/* Attached PDF Material Card (if present) */}
+                  {post.pdfAttachment && (
+                    <div className="p-3.5 rounded-2xl bg-rose-500/[0.06] border border-rose-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 shrink-0">
+                          <FileText className="w-4 h-4 text-rose-400" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20 uppercase">
+                              PDF Document
+                            </span>
+                            <span className="text-[11px] text-zinc-400 font-mono tabular-nums">
+                              {post.pdfAttachment.sizeFormatted}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-zinc-200 truncate mt-1">
+                            {post.pdfAttachment.name}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setActivePdfModal({
+                              url: post.pdfAttachment!.url,
+                              title: post.pdfAttachment!.name,
+                              size: post.pdfAttachment!.sizeFormatted,
+                            })
+                          }
+                          className="px-3 py-1.5 rounded-xl text-xs font-medium bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Read in App</span>
+                        </button>
+                        <a
+                          href={post.pdfAttachment.url}
+                          download
+                          className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                          title="Download PDF"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
                       </div>
                     </div>
-
-                    {/* Post Title */}
-                    <h3 className="text-base sm:text-lg font-serif font-bold text-zinc-100 tracking-tight leading-snug">
-                      {post.title}
-                    </h3>
-
-                    {/* Post Content */}
-                    <p className="text-xs sm:text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                      {post.content}
-                    </p>
-
-                    {/* Attached PDF Material Card (if present) */}
-                    {post.pdfAttachment && (
-                      <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 shrink-0">
-                            <FileText className="w-4 h-4 text-rose-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">
-                                PDF Document
-                              </span>
-                              <span className="text-[11px] text-zinc-400 font-mono">
-                                {post.pdfAttachment.sizeFormatted}
-                              </span>
-                            </div>
-                            <p className="text-xs font-semibold text-zinc-200 truncate mt-0.5">
-                              {post.pdfAttachment.name}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setActivePdfModal({
-                                url: post.pdfAttachment!.url,
-                                title: post.pdfAttachment!.name,
-                                size: post.pdfAttachment!.sizeFormatted,
-                              })
-                            }
-                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 transition cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Read in App</span>
-                          </button>
-                          <a
-                            href={post.pdfAttachment.url}
-                            download
-                            className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
-                            title="Download PDF"
-                          >
-                            <Download className="w-4 h-4" />
-                          </a>
-                        </div>
-                      </div>
-                    )}
+                  )}
 
                   {/* Bottom Controls Bar: Upvotes & Comments */}
-                  <div className="flex items-center justify-between pt-3 border-t border-zinc-850">
+                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                     <div className="flex items-center gap-2">
                       {/* Upvote Button */}
                       <button
                         onClick={() => handleUpvote(post.id)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border ${
+                        className={`btn-glass px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 cursor-pointer ${
                           hasUpvoted
-                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
-                            : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border-zinc-800'
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            : 'text-zinc-400 hover:text-zinc-200'
                         }`}
                       >
                         <ThumbsUp className={`w-3.5 h-3.5 ${hasUpvoted ? 'fill-current' : ''}`} />
-                        <span>{post.upvotes || 0} Helpful</span>
+                        <span className="tabular-nums">{post.upvotes || 0} Helpful</span>
                       </button>
 
                       {/* Comments Toggle */}
                       <button
                         onClick={() => toggleComments(post.id)}
-                        className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 transition"
+                        className="btn-glass px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>
+                        <span className="tabular-nums">
                           {post.comments?.length || 0}{' '}
                           {post.comments?.length === 1 ? 'Reply' : 'Replies'}
                         </span>
@@ -885,7 +885,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
                 {/* 6. Comments / Reply Thread */}
                 {isCommentsOpen && (
-                  <div className="bg-black/60 p-5 sm:p-6 border-t border-zinc-800 space-y-4 animate-in fade-in duration-150">
+                  <div className="bg-black/40 backdrop-blur-md p-5 sm:p-6 border-t border-white/[0.08] space-y-4 animate-in fade-in duration-150">
                     {/* Existing Comments */}
                     {post.comments && post.comments.length > 0 ? (
                       <div className="space-y-3">
@@ -894,33 +894,33 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                             key={c.id}
                             className={`p-3.5 rounded-2xl border text-xs space-y-1.5 ${
                               c.authorRole === 'admin'
-                                ? 'bg-emerald-950/20 border-emerald-500/30'
-                                : 'bg-zinc-900 border-zinc-800'
+                                ? 'bg-emerald-500/[0.06] border-emerald-500/20'
+                                : 'bg-white/[0.03] border-white/[0.06]'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="font-serif font-bold text-zinc-100">
+                                <span className="font-semibold text-white">
                                   {c.authorName}
                                 </span>
                                 <span
-                                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${
+                                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${
                                     c.authorRole === 'admin'
-                                      ? 'bg-emerald-500/20 text-emerald-400'
-                                      : 'bg-zinc-800 text-zinc-400'
+                                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                                      : 'bg-white/[0.04] text-zinc-400 border border-white/[0.08]'
                                   }`}
                                 >
                                   {c.authorRole === 'admin' ? 'Admin Answer' : 'Student'}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-zinc-500">
+                                <span className="text-[10px] text-zinc-500 font-mono tabular-nums">
                                   {formatRelativeTime(c.createdAt)}
                                 </span>
                                 {(c.authorId === currentUserId || isAdmin) && (
                                   <button
                                     onClick={() => handleDeleteComment(post.id, c.id)}
-                                    className="p-1 text-zinc-500 hover:text-rose-400 rounded transition cursor-pointer"
+                                    className="p-1 text-zinc-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
                                     title="Delete reply"
                                   >
                                     <Trash2 className="w-3 h-3" />
@@ -928,7 +928,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                                 )}
                               </div>
                             </div>
-                            <p className="text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-zinc-300 whitespace-pre-wrap leading-relaxed select-text">
                               {c.content}
                             </p>
                           </div>
@@ -959,12 +959,12 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                             ? 'Write official admin clarification or answer...'
                             : 'Reply or answer this question...'
                         }
-                        className="flex-1 px-3.5 py-2 text-xs bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+                        className="glass-input flex-1 px-3.5 py-2 text-xs rounded-xl"
                       />
                       <button
                         onClick={() => handleAddComment(post.id)}
                         disabled={!replyInputs[post.id]?.trim()}
-                        className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-black font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shadow-xs"
+                        className="btn-primary-glass px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Reply</span>

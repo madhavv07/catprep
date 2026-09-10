@@ -312,13 +312,13 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
               VARC Personal Learning
             </span>
             <span className="text-xs text-zinc-600">&bull;</span>
             <span className="text-xs text-zinc-400 font-medium">CAT Academic Register</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-zinc-100 tracking-tight mt-1">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1">
             Vocabulary Vault & AI Dictionary
           </h2>
           <p className="text-zinc-400 text-sm mt-1">
@@ -328,7 +328,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
         <button
           onClick={() => setActiveView('varc-test')}
-          className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0"
+          className="btn-primary-glass px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer shrink-0"
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Launch Vocabulary Test</span>
@@ -336,17 +336,17 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
       </div>
 
       {/* 2. Vocabulary Addition Card (AI Lookup or Manual Entry) */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-4">
+      <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-white/[0.08] shadow-2xl space-y-4">
         {/* Toggle between AI Lookup and Manual Word & Sentence Entry */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3.5">
-          <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-2xl w-fit">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3.5">
+          <div className="flex items-center gap-1.5 p-1 bg-white/[0.04] border border-white/[0.08] rounded-2xl w-fit">
             <button
               type="button"
               onClick={() => setEntryMode('lookup')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-2 cursor-pointer ${
                 entryMode === 'lookup'
-                  ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-xs'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white/[0.14] text-white border border-white/[0.18] shadow-xs font-semibold'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
@@ -355,10 +355,10 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             <button
               type="button"
               onClick={() => setEntryMode('manual')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-2 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-2 cursor-pointer ${
                 entryMode === 'manual'
-                  ? 'bg-emerald-500 text-black shadow-xs font-bold'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-white/[0.14] text-white border border-white/[0.18] shadow-xs font-semibold'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <PenTool className="w-3.5 h-3.5" />
@@ -406,19 +406,19 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   value={manualWord}
                   onChange={(e) => setManualWord(e.target.value)}
                   placeholder="e.g. taciturn, obdurate, ephemeral, mercurial..."
-                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-900/90 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:bg-black focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500/60 font-serif"
+                  className="glass-input w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                   Part of Speech
                 </label>
                 <select
                   value={manualPartOfSpeech}
                   onChange={(e) => setManualPartOfSpeech(e.target.value)}
-                  className="w-full px-3 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60 font-medium"
+                  className="glass-input w-full px-3 py-2.5 text-xs rounded-xl font-medium cursor-pointer"
                 >
                   <option value="adjective">Adjective</option>
                   <option value="noun">Noun</option>
@@ -433,7 +433,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             {/* Word Meaning and Secondary Meaning */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1 flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
                   <span>Word Meaning / Definition *</span>
                   <span className="text-[10px] text-zinc-500 font-normal">Primary academic sense</span>
                 </label>
@@ -442,13 +442,13 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   onChange={(e) => setManualMeaning(e.target.value)}
                   rows={3}
                   placeholder="Enter clear definition (e.g. reserved or uncommunicative in speech; saying little)..."
-                  className="w-full p-3 text-xs bg-zinc-900/90 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                  className="glass-input w-full p-3 text-xs rounded-xl leading-relaxed select-text"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1 flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1">
                     <Zap className="w-3 h-3 text-emerald-400" />
                     Secondary / Nuanced Meaning (Optional)
@@ -460,14 +460,14 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   onChange={(e) => setManualSecondaryMeaning(e.target.value)}
                   rows={3}
                   placeholder="e.g. In philosophical texts, implies deliberate economy of words rather than shy hesitation..."
-                  className="w-full p-3 text-xs bg-zinc-900/90 border border-emerald-500/30 text-emerald-300 placeholder-zinc-500 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500 font-serif leading-relaxed"
+                  className="glass-input w-full p-3 text-xs text-emerald-300 rounded-xl leading-relaxed select-text"
                 />
               </div>
             </div>
 
             {/* Example Sentence */}
             <div>
-              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1 flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5 flex items-center justify-between">
                 <span>Example Sentence *</span>
                 <span className="text-[10px] text-zinc-500 font-normal">Editorial or exam reading sentence</span>
               </label>
@@ -476,7 +476,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 onChange={(e) => setManualSentence(e.target.value)}
                 rows={2}
                 placeholder='e.g. "Although he was remarkably taciturn in staff briefings, his written essays were famously passionate and detailed."'
-                className="w-full p-3 text-xs bg-zinc-900/90 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                className="glass-input w-full p-3 text-xs rounded-xl leading-relaxed select-text"
                 required
               />
             </div>
@@ -610,7 +610,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Enter word (e.g. obdurate, pedestrian, mercurial, table)..."
-                    className="w-full pl-10 pr-4 py-2.5 text-sm bg-zinc-900/90 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:bg-black focus:outline-none focus:ring-1 focus:ring-emerald-500/30 focus:border-emerald-500/60 font-serif transition"
+                    className="glass-input w-full pl-10 pr-4 py-2.5 text-sm rounded-xl"
                   />
                 </div>
 
@@ -618,7 +618,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   <button
                     type="submit"
                     disabled={loading || !searchTerm.trim()}
-                    className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-black font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] shrink-0"
+                    className="btn-primary-glass px-5 py-2.5 disabled:opacity-50 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer shrink-0"
                   >
                     {loading ? (
                       <>
@@ -716,36 +716,36 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
         {/* 3. Generated / Editable Word Card */}
         {lookupResult && (
-          <div className="mt-5 p-5 rounded-2xl bg-zinc-900/60 border border-emerald-500/30 space-y-4 animate-in fade-in duration-150">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800">
+          <div className="mt-5 p-5 sm:p-6 rounded-2xl glass-card border border-emerald-500/20 space-y-4 animate-in fade-in duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="font-serif text-2xl font-bold text-zinc-100 capitalize">
+                <span className="text-2xl font-bold text-white tracking-tight capitalize">
                   {lookupResult.word}
                 </span>
-                <span className="text-xs text-zinc-500 font-mono">
+                <span className="text-xs text-zinc-400 font-mono">
                   {lookupResult.pronunciation}
                 </span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 border border-white/[0.08]">
                   {lookupResult.partOfSpeech}
                 </span>
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-white/[0.06] text-zinc-300 border border-white/[0.08]">
                   {lookupResult.difficulty}
                 </span>
 
                 {lookupResult.source_provider === 'gemini_lexical_engine' && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                     <Sparkles className="w-3 h-3 text-emerald-400" />
                     AI Lexical Engine
                   </span>
                 )}
                 {lookupResult.source_provider === 'live_web_dictionary' && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center gap-1">
                     <Globe className="w-3 h-3 text-cyan-400" />
                     Live Web Dictionary
                   </span>
                 )}
                 {lookupResult.source_provider === 'varc_curated_database' && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                     <BookOpen className="w-3 h-3 text-emerald-400" />
                     Curated CAT Lexicon
                   </span>
@@ -757,7 +757,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   href={`https://www.google.com/search?q=define+${encodeURIComponent(lookupResult.word)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-emerald-400 transition"
+                  className="btn-glass inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl text-zinc-300 hover:text-emerald-300 cursor-pointer"
                   title="Verify with Google Search definition"
                 >
                   <Globe className="w-3.5 h-3.5 text-emerald-400" />
@@ -769,7 +769,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   href={`https://dictionary.cambridge.org/dictionary/english/${encodeURIComponent(lookupResult.word)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-emerald-400 transition"
+                  className="btn-glass inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl text-zinc-300 hover:text-emerald-300 cursor-pointer"
                   title="Open in Cambridge Academic Dictionary"
                 >
                   <span>Cambridge</span>
@@ -777,7 +777,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 </a>
 
                 {findSavedWord(lookupResult.word) && (
-                  <span className="text-xs font-medium text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                  <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1">
                     <Check className="w-3.5 h-3.5" /> In Vault
                   </span>
                 )}
@@ -787,19 +787,19 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             {/* Meanings */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
                   Primary Academic Meaning
                 </label>
                 <textarea
                   value={editMeaning}
                   onChange={(e) => setEditMeaning(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 text-xs bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-xl focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                  className="glass-input w-full p-2.5 text-xs rounded-xl leading-relaxed select-text"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1 flex items-center gap-1">
+                <label className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
                   <Zap className="w-3 h-3 text-emerald-400" />
                   Secondary / Less Common Meaning (CAT Crucial!)
                 </label>
@@ -807,7 +807,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   value={editSecondaryMeaning}
                   onChange={(e) => setEditSecondaryMeaning(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 text-xs bg-zinc-950 border border-emerald-500/30 text-emerald-300 rounded-xl focus:outline-none focus:border-emerald-500 font-serif leading-relaxed"
+                  className="glass-input w-full p-2.5 text-xs text-emerald-300 rounded-xl leading-relaxed select-text"
                   placeholder="Secondary nuance tested in CAT RC..."
                 />
               </div>
@@ -867,7 +867,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   value={editExampleSentence}
                   onChange={(e) => setEditExampleSentence(e.target.value)}
                   rows={2}
-                  className="w-full p-2.5 text-xs bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                  className="w-full p-3 text-xs glass-input text-zinc-200 rounded-xl leading-relaxed"
                 />
               </div>
 
@@ -881,7 +881,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     value={editPersonalSentence}
                     onChange={(e) => setEditPersonalSentence(e.target.value)}
                     placeholder="e.g. Stumbled upon this in today's The Hindu editorial..."
-                    className="w-full px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 text-zinc-200 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                    className="w-full px-3 py-2.5 text-xs glass-input text-zinc-200 placeholder-zinc-500 rounded-xl"
                   />
                 </div>
 
@@ -948,19 +948,19 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             setSelectedConfidenceFilter('ALL');
             setShowOnlyRevisionDue(false);
           }}
-          className={`p-4 rounded-2xl border transition cursor-pointer ${
+          className={`p-4 rounded-2xl glass-card transition-all cursor-pointer ${
             selectedConfidenceFilter === 'ALL' && !showOnlyRevisionDue
-              ? 'bg-zinc-950 border-emerald-500 shadow-xs ring-1 ring-emerald-500'
-              : 'bg-zinc-950 border-zinc-800/80 hover:border-zinc-700'
+              ? 'border-emerald-500/40 bg-emerald-500/[0.04] shadow-lg shadow-emerald-950/20'
+              : 'border-white/[0.08] hover:border-white/[0.14]'
           }`}
         >
           <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block">
             Vault Library
           </span>
-          <span className="text-2xl font-serif font-bold text-zinc-100 mt-1 block">
+          <span className="text-2xl font-bold text-white tracking-tight tabular-nums mt-1 block">
             {stats.total} words
           </span>
-          <span className="text-[11px] text-emerald-400 font-medium">{stats.masteryScore}% retention score</span>
+          <span className="text-[11px] text-emerald-400 font-medium tabular-nums">{stats.masteryScore}% retention score</span>
         </div>
 
         <div
@@ -968,19 +968,19 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             setSelectedConfidenceFilter('Shaky');
             setShowOnlyRevisionDue(false);
           }}
-          className={`p-4 rounded-2xl border transition cursor-pointer ${
+          className={`p-4 rounded-2xl glass-card transition-all cursor-pointer ${
             selectedConfidenceFilter === 'Shaky' && !showOnlyRevisionDue
-              ? 'bg-rose-950/20 border-rose-500 shadow-xs ring-1 ring-rose-500'
-              : 'bg-zinc-950 border-zinc-800/80 hover:border-zinc-700'
+              ? 'border-rose-500/40 bg-rose-500/[0.04] shadow-lg shadow-rose-950/20'
+              : 'border-white/[0.08] hover:border-white/[0.14]'
           }`}
         >
           <span className="text-[11px] font-semibold text-rose-400 uppercase tracking-wider block">
             Shaky Words
           </span>
-          <span className="text-2xl font-serif font-bold text-rose-400 mt-1 block">
+          <span className="text-2xl font-bold text-rose-400 tracking-tight tabular-nums mt-1 block">
             {stats.shaky} words
           </span>
-          <span className="text-[11px] text-rose-500/80">High exam priority</span>
+          <span className="text-[11px] text-rose-400/80">High exam priority</span>
         </div>
 
         <div
@@ -988,19 +988,19 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             setSelectedConfidenceFilter('Medium');
             setShowOnlyRevisionDue(false);
           }}
-          className={`p-4 rounded-2xl border transition cursor-pointer ${
+          className={`p-4 rounded-2xl glass-card transition-all cursor-pointer ${
             selectedConfidenceFilter === 'Medium' && !showOnlyRevisionDue
-              ? 'bg-amber-950/20 border-amber-500 shadow-xs ring-1 ring-amber-500'
-              : 'bg-zinc-950 border-zinc-800/80 hover:border-zinc-700'
+              ? 'border-amber-500/40 bg-amber-500/[0.04] shadow-lg shadow-amber-950/20'
+              : 'border-white/[0.08] hover:border-white/[0.14]'
           }`}
         >
           <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider block">
             Medium Words
           </span>
-          <span className="text-2xl font-serif font-bold text-amber-400 mt-1 block">
+          <span className="text-2xl font-bold text-amber-300 tracking-tight tabular-nums mt-1 block">
             {stats.medium} words
           </span>
-          <span className="text-[11px] text-amber-500/80">Needs 1 more quiz</span>
+          <span className="text-[11px] text-amber-400/80">Needs 1 more quiz</span>
         </div>
 
         <div
@@ -1008,38 +1008,38 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             setShowOnlyRevisionDue(true);
             setSelectedConfidenceFilter('ALL');
           }}
-          className={`p-4 rounded-2xl border transition cursor-pointer ${
+          className={`p-4 rounded-2xl glass-card transition-all cursor-pointer ${
             showOnlyRevisionDue
-              ? 'bg-emerald-950/20 border-emerald-500 shadow-xs ring-1 ring-emerald-500'
-              : 'bg-zinc-950 border-zinc-800/80 hover:border-zinc-700'
+              ? 'border-emerald-500/40 bg-emerald-500/[0.04] shadow-lg shadow-emerald-950/20'
+              : 'border-white/[0.08] hover:border-white/[0.14]'
           }`}
         >
           <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider block">
             Due for Revision
           </span>
-          <span className="text-2xl font-serif font-bold text-emerald-400 mt-1 block">
+          <span className="text-2xl font-bold text-emerald-400 tracking-tight tabular-nums mt-1 block">
             {stats.dueForRevision} words
           </span>
-          <span className="text-[11px] text-emerald-500/80 font-medium">Click to filter</span>
+          <span className="text-[11px] text-emerald-400/80 font-medium">Click to filter</span>
         </div>
       </div>
 
       {/* 5. Library Explorer Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.08]">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-3" />
+          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
           <input
             type="text"
             value={librarySearch}
             onChange={(e) => setLibrarySearch(e.target.value)}
             placeholder="Search within saved vocabulary..."
-            className="w-full pl-9 pr-4 py-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            className="glass-input w-full pl-9 pr-4 py-2 text-xs rounded-xl"
           />
         </div>
 
         <div className="flex items-center gap-2 flex-wrap text-xs">
           {/* Confidence filters */}
-          <div className="flex items-center bg-zinc-900 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08]">
             {(['ALL', 'Shaky', 'Medium', 'Confident'] as const).map((lvl) => (
               <button
                 key={lvl}
@@ -1047,10 +1047,10 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   setSelectedConfidenceFilter(lvl);
                   setShowOnlyRevisionDue(false);
                 }}
-                className={`px-2.5 py-1 rounded-lg font-medium transition ${
+                className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   selectedConfidenceFilter === lvl && !showOnlyRevisionDue
-                    ? 'bg-zinc-800 text-emerald-400 border border-emerald-500/30 font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.14] text-white border border-white/[0.18] font-semibold shadow-xs'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 {lvl}
@@ -1062,7 +1062,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
           <select
             value={sortBy}
             onChange={(e: any) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-300 font-medium focus:outline-none focus:border-emerald-500/60"
+            className="glass-input px-3 py-1.5 rounded-xl text-zinc-300 font-medium cursor-pointer"
           >
             <option value="recent">Recently Added</option>
             <option value="alpha">Alphabetical (A-Z)</option>
@@ -1074,9 +1074,9 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
       {/* 6. Word Cards Grid */}
       {filteredWords.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-zinc-950 border border-zinc-800/80 text-zinc-400">
-          <BookOpen className="w-10 h-10 text-zinc-700 mx-auto mb-2" />
-          <p className="font-serif font-bold text-zinc-200 text-lg">Your Vocabulary Vault is Fresh & Empty</p>
+        <div className="p-12 text-center rounded-3xl glass-card border border-white/[0.08] text-zinc-400">
+          <BookOpen className="w-10 h-10 text-zinc-600 mx-auto mb-2" />
+          <p className="font-semibold text-white text-base">Your Vocabulary Vault is Fresh & Empty</p>
           <p className="text-xs text-zinc-500 mt-1 max-w-md mx-auto">
             Search for any word in the dictionary bar above to explore authentic definitions, contextual usage, and verified Google/Cambridge meanings, then save them directly to your vault.
           </p>
@@ -1087,12 +1087,12 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             <div
               key={w.id}
               onClick={() => openWordModal(w)}
-              className="p-4 rounded-2xl bg-zinc-950 border border-zinc-800/80 hover:border-emerald-500/40 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition flex flex-col justify-between cursor-pointer group"
+              className="p-4 rounded-2xl glass-card border border-white/[0.08] hover:border-white/[0.18] flex flex-col justify-between cursor-pointer group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h4 className="font-serif font-bold text-lg text-zinc-100 capitalize group-hover:text-emerald-400 transition">
+                    <h4 className="font-semibold text-lg text-white capitalize group-hover:text-emerald-300 transition-colors">
                       {w.word}
                     </h4>
                     <span className="text-[11px] text-zinc-500 font-mono">
@@ -1111,7 +1111,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                       };
                       updateConfidence(w.id, next[w.confidence]);
                     }}
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider cursor-pointer hover:opacity-80 transition ${getConfidenceBadge(
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border uppercase tracking-wider cursor-pointer hover:opacity-80 transition ${getConfidenceBadge(
                       w.confidence
                     )}`}
                     title="Click to cycle confidence rating"
@@ -1120,12 +1120,12 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   </span>
                 </div>
 
-                <p className="text-xs text-zinc-300 font-serif line-clamp-2 mt-2 leading-relaxed">
+                <p className="text-xs text-zinc-300 line-clamp-2 mt-2 leading-relaxed select-text">
                   {w.meaning}
                 </p>
 
                 {w.secondaryMeaning && (
-                  <p className="text-[11px] text-emerald-300 bg-emerald-950/20 p-2 rounded-lg border border-emerald-500/20 mt-2 line-clamp-2">
+                  <p className="text-[11px] text-emerald-300 bg-emerald-500/[0.08] p-2 rounded-xl border border-emerald-500/20 mt-2 line-clamp-2 select-text">
                     <span className="font-semibold text-emerald-400">Secondary: </span>
                     {w.secondaryMeaning}
                   </p>
@@ -1137,7 +1137,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     {w.synonyms.slice(0, 3).map((s, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 font-medium"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-zinc-400 font-medium"
                       >
                         {s}
                       </span>
@@ -1147,7 +1147,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
               </div>
 
               {/* Bottom metadata */}
-              <div className="pt-3 mt-3 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
+              <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500">
                 <span className="truncate max-w-[150px]">{w.source || 'Vault word'}</span>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-zinc-400">
@@ -1173,24 +1173,24 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
       {/* 7. Detailed Word Modal / Drawer */}
       {selectedWordModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setSelectedWordModal(null)}
         >
           <div
-            className="bg-zinc-950 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-zinc-800 space-y-4 max-h-[90vh] overflow-y-auto"
+            className="glass-panel rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between pb-3 border-b border-zinc-800">
+            <div className="flex items-start justify-between pb-3 border-b border-white/[0.08]">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-serif text-2xl font-bold text-zinc-100 capitalize">
+                  <h3 className="text-2xl font-bold text-white capitalize tracking-tight">
                     {selectedWordModal.word}
                   </h3>
                   <a
                     href={`https://www.google.com/search?q=define+${encodeURIComponent(selectedWordModal.word)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-1.5 text-zinc-500 hover:text-emerald-400 rounded-lg hover:bg-zinc-900 transition"
+                    className="p-1.5 text-zinc-400 hover:text-emerald-400 rounded-lg hover:bg-white/[0.06] transition"
                     title="Search definition on Google"
                   >
                     <Globe className="w-4 h-4" />
@@ -1208,8 +1208,8 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   onClick={() => setIsEditingModalWord(!isEditingModalWord)}
                   className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition flex items-center gap-1 ${
                     isEditingModalWord
-                      ? 'bg-emerald-500 text-black border-emerald-500 font-bold'
-                      : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:bg-zinc-800'
+                      ? 'bg-white/[0.15] text-white border-white/[0.25] font-bold shadow-xs'
+                      : 'btn-glass text-zinc-300'
                   }`}
                   title="Edit word meaning or sentence"
                 >
@@ -1227,7 +1227,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
                       selectedWordModal.confidence === lvl
                         ? getConfidenceBadge(lvl)
-                        : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800'
+                        : 'bg-white/[0.04] text-zinc-400 border-white/[0.08] hover:bg-white/[0.08]'
                     }`}
                   >
                     {lvl}
@@ -1238,7 +1238,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
             {isEditingModalWord ? (
               <div className="space-y-3.5 py-1 animate-in fade-in duration-150">
-                <div className="p-2.5 bg-zinc-900 rounded-xl border border-zinc-800 text-xs text-zinc-200 flex items-center justify-between font-medium">
+                <div className="p-2.5 glass-card rounded-xl text-xs text-zinc-200 flex items-center justify-between font-medium">
                   <span>Edit Meaning & Sentences for "{selectedWordModal.word}"</span>
                   {modalEditSuccess && (
                     <span className="text-emerald-400 font-bold flex items-center gap-1 animate-in fade-in">
@@ -1255,7 +1255,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     value={modalEditMeaning}
                     onChange={(e) => setModalEditMeaning(e.target.value)}
                     rows={3}
-                    className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                    className="w-full p-3 text-xs glass-input text-zinc-100 rounded-xl leading-relaxed"
                   />
                 </div>
 
@@ -1267,7 +1267,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     value={modalEditSecondaryMeaning}
                     onChange={(e) => setModalEditSecondaryMeaning(e.target.value)}
                     rows={2}
-                    className="w-full p-2.5 text-xs bg-zinc-900 border border-emerald-500/30 text-emerald-300 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500 font-serif leading-relaxed"
+                    className="w-full p-3 text-xs glass-input text-emerald-300 rounded-xl leading-relaxed"
                   />
                 </div>
 
@@ -1279,7 +1279,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     value={modalEditExampleSentence}
                     onChange={(e) => setModalEditExampleSentence(e.target.value)}
                     rows={2}
-                    className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60 font-serif leading-relaxed"
+                    className="w-full p-3 text-xs glass-input text-zinc-100 rounded-xl leading-relaxed"
                   />
                 </div>
 
@@ -1291,7 +1291,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                     type="text"
                     value={modalEditPersonalSentence}
                     onChange={(e) => setModalEditPersonalSentence(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-xl focus:bg-black focus:outline-none focus:border-emerald-500/60"
+                    className="w-full px-3 py-2.5 text-xs glass-input text-zinc-100 rounded-xl"
                   />
                 </div>
 
@@ -1299,14 +1299,14 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                   <button
                     type="button"
                     onClick={() => setIsEditingModalWord(false)}
-                    className="px-3.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
+                    className="btn-glass px-3.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleModalEditSave}
-                    className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shadow-xs"
+                    className="btn-primary-glass px-4 py-2 font-semibold text-xs rounded-xl transition flex items-center gap-1.5"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Save Changes</span>
@@ -1318,10 +1318,10 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 {/* Meanings */}
                 <div className="space-y-3">
                   <div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
                       Primary Definition
                     </span>
-                    <p className="text-sm font-serif text-zinc-200 leading-relaxed bg-zinc-900/80 p-3 rounded-xl border border-zinc-800">
+                    <p className="text-sm text-zinc-200 leading-relaxed glass-card p-3.5 rounded-xl">
                       {selectedWordModal.meaning}
                     </p>
                   </div>
@@ -1331,7 +1331,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                       <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
                         Secondary / Nuance Definition (Exam Tested)
                       </span>
-                      <p className="text-sm font-serif text-emerald-300 leading-relaxed bg-emerald-950/20 p-3 rounded-xl border border-emerald-500/30">
+                      <p className="text-sm text-emerald-300 leading-relaxed bg-emerald-500/[0.08] p-3.5 rounded-xl border border-emerald-500/20">
                         {selectedWordModal.secondaryMeaning}
                       </p>
                     </div>
@@ -1340,8 +1340,8 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
                 {/* Etymology & Root */}
                 {selectedWordModal.root && (
-                  <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 text-xs text-zinc-300">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-0.5">
+                  <div className="p-3.5 glass-card rounded-xl text-xs text-zinc-300">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
                       Etymology / Root
                     </span>
                     <span>{selectedWordModal.root}</span>
@@ -1350,26 +1350,26 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
 
                 {/* Synonyms & Antonyms */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 text-xs">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+                  <div className="p-3.5 glass-card rounded-xl text-xs">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                       Synonyms
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {selectedWordModal.synonyms?.map((s, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 text-[11px] border border-zinc-800">
+                        <span key={idx} className="px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-300 text-[11px] border border-white/[0.08]">
                           {s}
                         </span>
                       ))}
                     </div>
                   </div>
 
-                  <div className="p-3 bg-zinc-900/60 rounded-xl border border-zinc-800 text-xs">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+                  <div className="p-3.5 glass-card rounded-xl text-xs">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                       Antonyms
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {selectedWordModal.antonyms?.map((a, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 text-[11px] border border-zinc-800">
+                        <span key={idx} className="px-2 py-0.5 rounded-md bg-white/[0.06] text-zinc-300 text-[11px] border border-white/[0.08]">
                           {a}
                         </span>
                       ))}
@@ -1380,10 +1380,10 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 {/* Example sentence */}
                 {selectedWordModal.exampleSentence && (
                   <div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
                       Reading Comprehension Context
                     </span>
-                    <p className="text-xs font-serif text-zinc-300 italic bg-zinc-900/60 p-3 rounded-xl border border-zinc-800 leading-relaxed">
+                    <p className="text-xs text-zinc-300 italic glass-card p-3.5 rounded-xl leading-relaxed">
                       "{selectedWordModal.exampleSentence}"
                     </p>
                   </div>
@@ -1392,7 +1392,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 {/* Personal sentence */}
                 {selectedWordModal.personalSentence && (
                   <div className="text-xs text-zinc-400">
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block mb-0.5">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
                       Student Context / Discovery Note
                     </span>
                     <span>{selectedWordModal.personalSentence}</span>
@@ -1400,7 +1400,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
                 )}
 
                 {/* Test statistics for this word */}
-                <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs text-zinc-400">
+                <div className="p-3.5 glass-card rounded-xl flex items-center justify-between text-xs text-zinc-400 tabular-nums">
                   <span>Tests taken: {selectedWordModal.testsCount}</span>
                   <span>
                     Accuracy:{' '}
@@ -1415,7 +1415,7 @@ export const VocabDictionary: React.FC<VocabDictionaryProps> = ({ setActiveView 
             )}
 
             {/* Footer Buttons */}
-            <div className="pt-2 flex items-center justify-between border-t border-zinc-800">
+            <div className="pt-2 flex items-center justify-between border-t border-white/[0.08]">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleDeleteWord(selectedWordModal.id, selectedWordModal.word)}

@@ -17,7 +17,7 @@ import {
   Trash2,
   X,
   ExternalLink,
-  Clock
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTasks } from '../../context/TaskContext';
@@ -92,13 +92,13 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-black/90 backdrop-blur-md border-b border-zinc-800 text-zinc-100">
+    <header className="sticky top-0 z-30 bg-zinc-950/75 backdrop-blur-2xl border-b border-white/[0.08] text-zinc-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Left: Menu Toggle + Logo & Title */}
+        {/* Left: Menu Toggle + Logo & Breadcrumb */}
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleSidebar}
-            className="p-2 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition flex items-center justify-center"
+            className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08] transition flex items-center justify-center cursor-pointer"
             aria-label="Toggle navigation"
             title="Toggle Navigation Sidebar"
           >
@@ -109,36 +109,36 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             onClick={() => setActiveView('dashboard')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
-            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-black flex items-center justify-center font-bold text-lg shadow-xs transition group-hover:scale-105">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-zinc-950 flex items-center justify-center font-bold text-base shadow-[0_0_18px_rgba(16,185,129,0.3)] ring-1 ring-white/20 transition group-hover:scale-105">
               P
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-base tracking-tight group-hover:text-emerald-400 transition">
+                <span className="font-semibold text-white text-sm tracking-tight group-hover:text-emerald-300 transition">
                   PrepDesk
                 </span>
-                <span className="hidden sm:inline-block text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60">
+                <span className="hidden sm:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   CAT 2027
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="hidden md:block h-5 w-[1px] bg-zinc-800 mx-2" />
-          <h1 className="hidden md:block text-xs font-semibold text-zinc-400 uppercase tracking-wider truncate max-w-xs">
+          <div className="hidden md:block h-4 w-[1px] bg-white/[0.1] mx-2" />
+          <h1 className="hidden md:block text-xs font-medium text-zinc-400 truncate max-w-xs">
             {getPageTitle()}
           </h1>
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Quick Schedule / Calendar Button */}
           <button
             onClick={() => setActiveView('calendar')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
               activeView === 'calendar' || activeView === 'schedule'
-                ? 'bg-emerald-500 text-black border-emerald-500 shadow-xs'
-                : 'bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                ? 'bg-white/[0.1] text-white border border-white/[0.18] shadow-xs'
+                : 'btn-glass text-zinc-300 hover:text-white'
             }`}
             title="Open Master Schedule & Calendar"
           >
@@ -146,15 +146,13 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             <span className="hidden sm:inline">Timetable</span>
           </button>
 
-
-
           {/* Quick Community Feed Link */}
           <button
             onClick={() => setActiveView('feed')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
               activeView === 'feed'
-                ? 'bg-emerald-500 text-black border-emerald-500 shadow-xs'
-                : 'bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border-zinc-800 hover:border-zinc-700'
+                ? 'bg-white/[0.1] text-white border border-white/[0.18] shadow-xs'
+                : 'btn-glass text-zinc-300 hover:text-white'
             }`}
             title="Community Inquiries Feed"
           >
@@ -166,25 +164,25 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
           <div className="relative">
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-850 border border-transparent hover:border-zinc-800 transition"
+              className="relative p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08] transition cursor-pointer"
               aria-label="Notifications"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-black animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-zinc-950 animate-pulse" />
               )}
             </button>
 
-            {/* Notification Dropdown */}
+            {/* Notification Dropdown Drawer */}
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#09090b] rounded-2xl shadow-2xl border border-zinc-800 py-3 px-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="flex items-center justify-between pb-2.5 border-b border-zinc-800">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 glass-panel rounded-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-white tracking-tight">
                       Notifications
                     </span>
                     {unreadCount > 0 && (
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                         {unreadCount} new
                       </span>
                     )}
@@ -192,56 +190,55 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 transition"
+                      className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition cursor-pointer"
                     >
                       Mark all read
                     </button>
                   )}
                 </div>
 
-                <div className="mt-2.5 space-y-2 max-h-80 overflow-y-auto pr-1">
+                {/* Notifications List */}
+                <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.06] my-2">
                   {notifications.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-zinc-500 space-y-1">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1" />
-                      <p>You're all caught up!</p>
-                      <p className="text-[11px] text-zinc-600">No pending notifications.</p>
+                    <div className="py-8 text-center text-xs text-zinc-500">
+                      No notifications yet. You're all caught up!
                     </div>
                   ) : (
                     notifications.map((notif) => (
                       <div
                         key={notif.id}
                         onClick={() => handleNotificationClick(notif)}
-                        className={`p-3 rounded-xl border text-xs transition cursor-pointer flex items-start gap-2.5 ${
-                          !notif.read
-                            ? 'bg-zinc-900 border-zinc-700 hover:border-emerald-500/50 shadow-xs'
-                            : 'bg-zinc-950/60 border-zinc-850 opacity-70 hover:opacity-100 hover:border-zinc-750'
+                        className={`py-3 px-2 rounded-xl transition cursor-pointer flex items-start gap-3 ${
+                          notif.read
+                            ? 'hover:bg-white/[0.03] opacity-70'
+                            : 'bg-white/[0.04] hover:bg-white/[0.07]'
                         }`}
                       >
-                        <div className="mt-0.5 shrink-0">
-                          {notif.type === 'TASK_OVERDUE' ? (
-                            <AlertTriangle className="w-4 h-4 text-rose-400" />
-                          ) : notif.type === 'TEST_RESULT' ? (
-                            <Award className="w-4 h-4 text-emerald-400" />
-                          ) : notif.type === 'DEADLINE_APPROACHING' ? (
-                            <Clock className="w-4 h-4 text-amber-400" />
-                          ) : (
-                            <Sparkles className="w-4 h-4 text-emerald-400" />
-                          )}
+                        <div
+                          className={`p-2 rounded-xl shrink-0 mt-0.5 ${
+                            notif.type === 'DEADLINE_APPROACHING'
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : notif.type === 'TASK_OVERDUE'
+                              ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          }`}
+                        >
+                          <Clock className="w-3.5 h-3.5" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1">
-                            <h4 className="font-bold text-white truncate">{notif.title}</h4>
-                            <span className="text-[10px] text-zinc-500 shrink-0 font-mono">
-                              {new Date(notif.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
+                          <p className="text-xs font-medium text-white truncate">
+                            {notif.title}
+                          </p>
+                          <p className="text-[11px] text-zinc-400 line-clamp-2 mt-0.5 leading-relaxed">
                             {notif.message}
                           </p>
+                          <span className="text-[10px] text-zinc-500 font-mono mt-1 block">
+                            {new Date(notif.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
                         </div>
 
                         <button
@@ -249,10 +246,10 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                             e.stopPropagation();
                             deleteNotification(notif.id);
                           }}
-                          className="text-zinc-500 hover:text-rose-400 p-1 rounded transition"
-                          title="Delete notification"
+                          className="text-zinc-600 hover:text-rose-400 p-1 rounded-lg transition"
+                          title="Dismiss"
                         >
-                          <X className="w-3 h-3" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     ))
@@ -262,33 +259,33 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             )}
           </div>
 
-          {/* User Profile Menu */}
+          {/* User Profile Pill */}
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-zinc-850 transition border border-transparent hover:border-zinc-800"
+              className="flex items-center gap-2 p-1.5 pl-2.5 rounded-xl btn-glass cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 text-emerald-400 flex items-center justify-center text-xs font-bold font-mono shadow-xs shrink-0">
-                {user?.displayName?.charAt(0).toUpperCase() || user?.studentId?.charAt(0).toUpperCase() || 'U'}
+              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xs font-bold">
+                {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
               </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-white truncate max-w-[120px]">
-                  {user?.displayName || 'Student'}
-                </p>
-                <p className="text-[10px] text-emerald-400 font-mono">
-                  {user?.studentId || (isAdmin ? 'ADMIN' : 'STUDENT')}
-                </p>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="text-xs font-medium text-zinc-200 hidden md:inline max-w-[100px] truncate">
+                {user?.displayName || 'Scholar'}
+              </span>
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
             </button>
 
+            {/* Profile Dropdown */}
             {profileOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-[#09090b] rounded-2xl shadow-2xl border border-zinc-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-xs">
-                <div className="px-4 py-2.5 border-b border-zinc-800">
-                  <p className="font-bold text-white truncate">{user?.displayName}</p>
-                  <p className="text-[11px] font-mono text-zinc-400 truncate">{user?.studentId}</p>
-                  <span className="mt-1.5 inline-block text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/50">
-                    {user?.role === 'admin' ? 'ADMINISTRATOR' : 'SCHOLAR (B-CAT2701)'}
+              <div className="absolute right-0 mt-2 w-56 glass-panel rounded-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="px-3 py-2 border-b border-white/[0.08]">
+                  <p className="text-xs font-semibold text-white truncate">
+                    {user?.displayName || 'PrepDesk Scholar'}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 font-mono truncate">
+                    {user?.studentId || user?.email}
+                  </p>
+                  <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {isAdmin ? 'Faculty Administrator' : 'Batch B-CAT2701'}
                   </span>
                 </div>
 
@@ -298,33 +295,33 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                       setActiveView('profile');
                       setProfileOpen(false);
                     }}
-                    className="w-full px-4 py-2 text-left text-zinc-300 hover:bg-zinc-850 hover:text-white flex items-center gap-2 transition"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition cursor-pointer"
                   >
-                    <User className="w-4 h-4 text-zinc-500" />
+                    <User className="w-3.5 h-3.5 text-zinc-400" />
                     <span>My Profile</span>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      setActiveView('my-tasks');
-                      setProfileOpen(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-zinc-300 hover:bg-zinc-850 hover:text-white flex items-center gap-2 transition"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-zinc-500" />
-                    <span>My Tasks & Targets</span>
-                  </button>
-                </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setActiveView('admin-students');
+                        setProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition cursor-pointer"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Admin Management</span>
+                    </button>
+                  )}
 
-                <div className="pt-1 border-t border-zinc-800">
                   <button
                     onClick={() => {
                       signOut();
                       setProfileOpen(false);
                     }}
-                    className="w-full px-4 py-2 text-left text-rose-400 hover:bg-rose-950/40 flex items-center gap-2 transition"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-3.5 h-3.5" />
                     <span>Sign Out</span>
                   </button>
                 </div>

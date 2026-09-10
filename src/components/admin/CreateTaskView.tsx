@@ -276,16 +276,16 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
         <div>
           <button
             onClick={onDone}
-            className="text-xs text-zinc-400 hover:text-zinc-200 transition flex items-center gap-1 mb-1.5"
+            className="text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1 mb-1.5 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Manage Tasks
           </button>
-          <h2 className="text-2xl font-serif font-bold text-zinc-100">
+          <h2 className="text-2xl font-bold text-white tracking-tight">
             {taskToEdit ? 'Edit Class Task' : 'Publish New Class Task'}
           </h2>
           <p className="text-xs text-zinc-400 mt-0.5">
@@ -297,7 +297,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           <button
             onClick={() => handleSubmit(false)}
             disabled={saving}
-            className="px-4 py-2 text-xs font-semibold rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 transition"
+            className="btn-glass px-4 py-2 text-xs font-medium rounded-xl text-zinc-300 hover:text-white cursor-pointer"
           >
             Save as Draft
           </button>
@@ -305,7 +305,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           <button
             onClick={() => handleSubmit(true)}
             disabled={saving}
-            className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs rounded-xl transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            className="btn-primary-glass px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
           >
             {savedSuccess ? (
               <>
@@ -321,24 +321,24 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+        <div className="p-3.5 bg-rose-500/10 border border-rose-500/25 rounded-xl text-xs text-rose-300 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Form Fields */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-6">
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] shadow-2xl space-y-6">
         {/* Subject & Priority */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Subject Category *
             </label>
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value as Subject)}
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl font-medium focus:outline-none focus:border-emerald-500/60"
+              className="glass-input w-full p-2.5 text-xs rounded-xl font-medium cursor-pointer"
             >
               <option value="VARC">VARC (Verbal Ability & Reading Comp)</option>
               <option value="DILR">DILR (Data Interpretation & Logical Reasoning)</option>
@@ -347,13 +347,13 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Urgency / Priority
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl font-medium focus:outline-none focus:border-emerald-500/60"
+              className="glass-input w-full p-2.5 text-xs rounded-xl font-medium cursor-pointer"
             >
               <option value="Normal">Normal</option>
               <option value="Important">Important</option>
@@ -364,7 +364,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
 
         {/* Title */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
             Task Title *
           </label>
           <input
@@ -372,14 +372,14 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g., Read Aeon Essay 'The Limits of Epistemology' & 3 RC Questions"
-            className="w-full p-2.5 text-sm bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl font-serif focus:outline-none focus:border-emerald-500/60 transition"
+            className="glass-input w-full p-2.5 text-sm font-semibold rounded-xl"
           />
         </div>
 
         {/* Topic & Subtopic code */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Topic / Theme
             </label>
             <input
@@ -387,11 +387,11 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. Critical Reasoning, Percentages, Circular Arrangements"
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+              className="glass-input w-full p-2.5 text-xs rounded-xl"
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Subtopic Code (Optional)
             </label>
             <input
@@ -399,14 +399,14 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               value={subtopic}
               onChange={(e) => setSubtopic(e.target.value)}
               placeholder="e.g. VA 1.2, QA 1.5A, LR 2.1"
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+              className="glass-input w-full p-2.5 text-xs rounded-xl"
             />
           </div>
         </div>
 
         {/* Short description */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
             Short Summary / Preview
           </label>
           <input
@@ -414,14 +414,14 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             value={shortDescription}
             onChange={(e) => setShortDescription(e.target.value)}
             placeholder="Brief 1-line overview shown on student cards..."
-            className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            className="glass-input w-full p-2.5 text-xs rounded-xl"
           />
         </div>
 
         {/* Detailed Instructions (Supports Links!) */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               Full Instructions & Study Links
             </label>
             <span className="text-[11px] text-zinc-500">
@@ -433,25 +433,25 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
             placeholder="Provide step-by-step instructions, question numbers from handout, or paste resource links like Google Drive sheets or YouTube lectures..."
-            className="w-full p-3 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl leading-relaxed focus:outline-none focus:border-emerald-500/60 transition font-sans"
+            className="glass-input w-full p-3 text-xs rounded-xl leading-relaxed select-text"
           />
         </div>
 
         {/* SMART TIMETABLE INTEGRATION: Assigned in Lecture Picker */}
-        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
               1. Assigned In Lecture / Date
             </label>
-            <div className="flex items-center gap-1 text-[11px]">
+            <div className="flex items-center gap-1 text-[11px] bg-white/[0.04] p-0.5 rounded-lg border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setAssignedMode('timetable')}
-                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
                   assignedMode === 'timetable'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.12] text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Select from Timetable
@@ -459,10 +459,10 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               <button
                 type="button"
                 onClick={() => setAssignedMode('custom')}
-                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
                   assignedMode === 'custom'
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.12] text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Custom
@@ -475,7 +475,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               <select
                 value={selectedAssignedActId}
                 onChange={(e) => handleSelectAssignedLecture(e.target.value)}
-                className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                className="glass-input w-full p-2.5 text-xs rounded-xl cursor-pointer"
               >
                 <option value="">-- Choose Scheduled Class Lecture --</option>
                 {scheduleActivities.map((act) => (
@@ -485,7 +485,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                 ))}
               </select>
               {givenInLecture && (
-                <p className="text-[11px] text-emerald-400/90 mt-1.5 flex items-center gap-1 font-mono">
+                <p className="text-[11px] text-emerald-400 mt-1.5 flex items-center gap-1 font-mono">
                   <CheckCircle2 className="w-3 h-3" />
                   Assigned in: {givenInLecture} (Date: {assignedDate})
                 </p>
@@ -500,7 +500,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                   value={givenInLecture}
                   onChange={(e) => setGivenInLecture(e.target.value)}
                   placeholder="e.g. Lecture 12 (Critical Reasoning)"
-                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                  className="glass-input w-full p-2 text-xs rounded-xl"
                 />
               </div>
               <div>
@@ -509,7 +509,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                   type="date"
                   value={assignedDate}
                   onChange={(e) => setAssignedDate(e.target.value)}
-                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                  className="glass-input w-full p-2 text-xs rounded-xl"
                 />
               </div>
             </div>
@@ -517,20 +517,20 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
         </div>
 
         {/* SMART TIMETABLE INTEGRATION: Deadline & Target Lecture Picker */}
-        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-amber-400" />
               2. Deadline & Target Submission Lecture *
             </label>
-            <div className="flex items-center gap-1 text-[11px]">
+            <div className="flex items-center gap-1 text-[11px] bg-white/[0.04] p-0.5 rounded-lg border border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => setDeadlineMode('timetable')}
-                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
                   deadlineMode === 'timetable'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.12] text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Target Class Lecture
@@ -538,10 +538,10 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               <button
                 type="button"
                 onClick={() => setDeadlineMode('custom')}
-                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
                   deadlineMode === 'custom'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-white/[0.12] text-white font-semibold'
+                    : 'text-zinc-400 hover:text-white'
                 }`}
               >
                 Custom Date/Time
@@ -554,7 +554,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               <select
                 value={selectedDeadlineActId}
                 onChange={(e) => handleSelectDeadlineLecture(e.target.value)}
-                className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                className="glass-input w-full p-2.5 text-xs rounded-xl cursor-pointer"
               >
                 <option value="">-- Choose Target Class for Deadline --</option>
                 {scheduleActivities.map((act) => (
@@ -571,7 +571,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                     type="date"
                     value={deadlineDate}
                     onChange={(e) => setDeadlineDate(e.target.value)}
-                    className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                    className="glass-input w-full p-2 text-xs rounded-xl tabular-nums"
                   />
                 </div>
                 <div>
@@ -580,13 +580,13 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                     type="time"
                     value={deadlineTime}
                     onChange={(e) => setDeadlineTime(e.target.value)}
-                    className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                    className="glass-input w-full p-2 text-xs rounded-xl tabular-nums"
                   />
                 </div>
               </div>
 
               {submissionLecture && (
-                <p className="text-[11px] text-amber-400/90 font-mono flex items-center gap-1">
+                <p className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Submission expected at: {submissionLecture} ({deadlineDate})
                 </p>
@@ -600,7 +600,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                   type="date"
                   value={deadlineDate}
                   onChange={(e) => setDeadlineDate(e.target.value)}
-                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                  className="glass-input w-full p-2 text-xs rounded-xl tabular-nums"
                 />
               </div>
               <div>
@@ -609,7 +609,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                   type="time"
                   value={deadlineTime}
                   onChange={(e) => setDeadlineTime(e.target.value)}
-                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                  className="glass-input w-full p-2 text-xs rounded-xl tabular-nums"
                 />
               </div>
               <div>
@@ -619,7 +619,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                   value={submissionLecture}
                   onChange={(e) => setSubmissionLecture(e.target.value)}
                   placeholder="e.g. Start of Lecture 14"
-                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-amber-500/60"
+                  className="glass-input w-full p-2 text-xs rounded-xl"
                 />
               </div>
             </div>
@@ -627,19 +627,19 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
         </div>
 
         {/* PDF ATTACHMENT SECTION */}
-        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
-          <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
+          <label className="text-xs font-semibold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5 text-rose-400" />
             3. Attach PDF Handout / Worksheet (Optional)
           </label>
 
           {pdfAttachment ? (
-            <div className="p-3 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex items-center justify-between gap-3">
+            <div className="p-3.5 rounded-2xl bg-rose-500/[0.06] border border-rose-500/20 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
                 <FileText className="w-5 h-5 text-rose-400 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-zinc-100 truncate">{pdfAttachment.name}</p>
-                  <span className="text-[10px] text-zinc-400 font-mono">{pdfAttachment.sizeFormatted}</span>
+                  <span className="text-[10px] text-zinc-400 font-mono tabular-nums">{pdfAttachment.sizeFormatted}</span>
                 </div>
               </div>
 
@@ -647,7 +647,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setPreviewPdfModal(pdfAttachment)}
-                  className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1 transition cursor-pointer"
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <Eye className="w-3 h-3" />
                   Preview
@@ -655,7 +655,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setPdfAttachment(undefined)}
-                  className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                  className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                   title="Remove PDF"
                 >
                   <X className="w-4 h-4" />
@@ -664,7 +664,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             </div>
           ) : (
             <div>
-              <label className="border border-dashed border-zinc-700 hover:border-emerald-500/50 bg-zinc-900/50 hover:bg-zinc-900 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
+              <label className="border border-dashed border-white/[0.12] hover:border-emerald-500/40 bg-white/[0.02] hover:bg-white/[0.04] rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors">
                 <Upload className="w-5 h-5 text-zinc-400" />
                 <div className="text-center">
                   <span className="text-xs font-semibold text-zinc-300 block">
@@ -690,7 +690,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
         {/* Submission Method & Publish Status */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Submission Method / Medium
             </label>
             <input
@@ -698,18 +698,18 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               value={submissionMethod}
               onChange={(e) => setSubmissionMethod(e.target.value)}
               placeholder="e.g. Handwritten notebook in class, or Portal upload"
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
+              className="glass-input w-full p-2.5 text-xs rounded-xl"
             />
           </div>
 
           <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Publish Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskPublishStatus)}
-              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl font-medium focus:outline-none focus:border-emerald-500/60"
+              className="glass-input w-full p-2.5 text-xs rounded-xl font-medium cursor-pointer"
             >
               <option value="published">Published (Visible to all students)</option>
               <option value="draft">Draft (Admin only)</option>
@@ -719,7 +719,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
 
         {/* Admin Guidance Notes */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
             Admin Advisory / Guidance Notes
           </label>
           <textarea
@@ -727,7 +727,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             value={additionalNotes}
             onChange={(e) => setAdditionalNotes(e.target.value)}
             placeholder="e.g. Time yourself strictly to 45 mins. Bring rough work notes to discussion."
-            className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl leading-relaxed focus:outline-none focus:border-emerald-500/60"
+            className="glass-input w-full p-2.5 text-xs rounded-xl leading-relaxed"
           />
         </div>
       </div>
