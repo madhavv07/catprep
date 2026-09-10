@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Clock,
@@ -102,14 +103,14 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto"
         onClick={onClose}
       >
         <div
-          className="relative w-full max-w-2xl rounded-3xl glass-panel border border-white/[0.1] shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col"
+          className="relative w-full max-w-2xl rounded-3xl glass-panel border border-white/[0.1] shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col animate-card-modal"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Top Banner with Countdown */}
@@ -425,6 +426,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           fileSizeFormatted={activePdfModal.size}
         />
       )}
-    </>
+    </>,
+    document.body
   );
 };

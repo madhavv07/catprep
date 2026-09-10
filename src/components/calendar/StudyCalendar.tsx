@@ -22,6 +22,7 @@ import {
 import { useTasks } from '../../context/TaskContext';
 import { useAuth } from '../../context/AuthContext';
 import { ScheduleActivity, ClassTask, PersonalTask, ActiveView, CATSection } from '../../types';
+import { TaskDetailModal } from '../tasks/TaskDetailModal';
 
 interface StudyCalendarProps {
   setActiveView: (view: ActiveView) => void;
@@ -33,6 +34,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
 
   // Selected date state (defaults to today in schedule: 2026-09-10)
   const [selectedDate, setSelectedDate] = useState<string>('2026-09-10');
+  const [selectedTaskForModal, setSelectedTaskForModal] = useState<ClassTask | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'agenda'>('month');
   const [filterSection, setFilterSection] = useState<'ALL' | CATSection | 'LECTURES' | 'TASKS'>('ALL');
   const [selectedActivity, setSelectedActivity] = useState<ScheduleActivity | null>(null);
@@ -466,10 +468,14 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                     return (
                       <div
                         key={task.id}
-                        className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 flex items-start gap-2.5 transition hover:border-zinc-700"
+                        onClick={() => setSelectedTaskForModal(task)}
+                        className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 flex items-start gap-2.5 transition hover:border-zinc-700 cursor-pointer group"
                       >
                         <button
-                          onClick={() => toggleTaskCompletion(task.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTaskCompletion(task.id);
+                          }}
                           className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center border transition shrink-0 ${
                             isDone
                               ? 'bg-emerald-500 border-emerald-500 text-black'
@@ -697,6 +703,16 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
             </div>
           </div>
         </div>
+      )}
+
+      {/* Enlarged Task Modal */}
+      {selectedTaskForModal && (
+        <TaskDetailModal
+          task={selectedTaskForModal}
+          isOpen={true}
+          onClose={() => setSelectedTaskForModal(null)}
+          isAdmin={isAdmin}
+        />
       )}
     </div>
   );

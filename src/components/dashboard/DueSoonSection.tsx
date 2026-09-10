@@ -14,10 +14,12 @@ import {
   CheckSquare,
   Sparkles,
   ExternalLink,
+  Maximize2,
 } from 'lucide-react';
 import { ClassTask, ActiveView, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
 import { getDueSoonInfo, formatTime12h, formatDatePretty } from '../../utils/dateUtils';
+import { TaskDetailModal } from '../tasks/TaskDetailModal';
 
 interface DueSoonSectionProps {
   setActiveView: (view: ActiveView) => void;
@@ -26,6 +28,7 @@ interface DueSoonSectionProps {
 export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView }) => {
   const { getDueIn24HoursTasks, toggleTaskCompletion, taskProgress } = useTasks();
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [selectedTaskForModal, setSelectedTaskForModal] = useState<ClassTask | null>(null);
 
   const dueSoonTasks = getDueIn24HoursTasks();
 
@@ -125,7 +128,8 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
             return (
               <div
                 key={task.id}
-                className="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-3 relative overflow-hidden"
+                onClick={() => setSelectedTaskForModal(task)}
+                className="glass-card rounded-2xl p-5 flex flex-col justify-between space-y-3 relative overflow-hidden cursor-pointer group"
               >
                 {/* Card Top */}
                 <div className="space-y-2">
@@ -151,8 +155,9 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
                     </span>
                   </div>
 
-                  <h4 className="text-sm sm:text-base font-semibold text-white leading-snug">
-                    {task.title}
+                  <h4 className="text-sm sm:text-base font-semibold text-white leading-snug group-hover:text-emerald-300 transition-colors flex items-center justify-between">
+                    <span>{task.title}</span>
+                    <Maximize2 className="w-3.5 h-3.5 text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0 ml-2" />
                   </h4>
                   <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
                     {task.shortDescription}
@@ -185,7 +190,10 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
                 {/* Card Bottom Footer & Actions */}
                 <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between gap-2">
                   <button
-                    onClick={() => toggleTaskCompletion(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTaskCompletion(task.id);
+                    }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                       isDone
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
@@ -197,7 +205,10 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
                   </button>
 
                   <button
-                    onClick={() => toggleExpand(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleExpand(task.id);
+                    }}
                     className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
                   >
                     <span>{isExpanded ? 'Hide Details' : 'Details'}</span>
@@ -208,6 +219,15 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
             );
           })}
         </div>
+      )}
+
+      {/* Enlarged Task Modal */}
+      {selectedTaskForModal && (
+        <TaskDetailModal
+          task={selectedTaskForModal}
+          isOpen={true}
+          onClose={() => setSelectedTaskForModal(null)}
+        />
       )}
     </section>
   );

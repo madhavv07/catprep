@@ -102,7 +102,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-300 group ${
+      onClick={() => setIsModalOpen(true)}
+      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-300 group cursor-pointer ${
         isCompleted
           ? 'opacity-70 border-white/[0.04] bg-white/[0.02]'
           : deadline.isOverdue
@@ -211,7 +212,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Quick Expand Button */}
             <button
               type="button"
-              onClick={() => setExpanded(!expanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
               className="p-1 text-zinc-500 hover:text-white hover:bg-white/[0.08] rounded-xl transition-colors shrink-0 cursor-pointer"
               aria-label={expanded ? 'Collapse task details' : 'Expand task details'}
             >
