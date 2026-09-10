@@ -24,6 +24,14 @@ export type TaskExecutionStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
 
 export type DeadlineState = 'ON_TIME' | 'DUE_SOON' | 'OVERDUE' | 'COMPLETED_LATE';
 
+export interface PdfAttachment {
+  name: string;
+  url: string;
+  sizeFormatted: string;
+  sizeBytes?: number;
+  uploadedAt?: string;
+}
+
 export interface ClassTask {
   id: string;
   section: CATSection;
@@ -50,6 +58,7 @@ export interface ClassTask {
   linkedTestId?: string;
   scheduleActivityId?: string;
   attachmentUrl?: string;
+  pdfAttachment?: PdfAttachment;
   createdBy: string;
   createdByName?: string;
   createdAt: string;
@@ -276,6 +285,7 @@ export interface FeedPost {
   comments?: FeedComment[];
   commentCount?: number;
   isPinned?: boolean;
+  pdfAttachment?: PdfAttachment;
   createdAt: string;
   updatedAt: string;
 }

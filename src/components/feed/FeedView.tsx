@@ -10,6 +10,11 @@ import {
   Pin,
   AlertCircle,
   Search,
+  FileText,
+  Upload,
+  X,
+  Eye,
+  Download,
 } from 'lucide-react';
 import {
   collection,
@@ -21,7 +26,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { useAuth } from '../../context/AuthContext';
-import { FeedPost, FeedComment, FeedCategory, ActiveView } from '../../types';
+import { FeedPost, FeedComment, FeedCategory, ActiveView, PdfAttachment } from '../../types';
+import { PdfViewerModal } from '../common/PdfViewerModal';
 
 interface FeedViewProps {
   setActiveView: (view: ActiveView) => void;
@@ -61,6 +67,12 @@ export const FeedView: React.FC<FeedViewProps> = () => {
   const [newCategory, setNewCategory] = useState<FeedCategory>('Assignment & Deadlines');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // PDF Attachment and Pin states
+  const [formPdf, setFormPdf] = useState<PdfAttachment | undefined>(undefined);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
+  const [activePdfModal, setActivePdfModal] = useState<{ url: string; title: string; size?: string } | null>(null);
 
   // Active expanded comments map (postId -> boolean)
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
@@ -120,6 +132,92 @@ export const FeedView: React.FC<FeedViewProps> = () => {
     setIsFormOpen(true);
   };
 
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setPdfUploadError('Please select a valid PDF file.');
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      setPdfUploadError('PDF exceeds the 25MB maximum limit.');
+      return;
+    }
+
+    setIsUploadingPdf(true);
+    setPdfUploadError(null);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Content = reader.result as string;
+          const res = await fetch('/api/db/upload-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              data: base64Content,
+            }),
+          });
+
+          if (!res.ok) throw new Error('Upload endpoint error');
+          const data = await res.json();
+          setFormPdf({
+            name: data.name || file.name,
+            url: data.url,
+            sizeFormatted: data.sizeFormatted || `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+            sizeBytes: data.sizeBytes || file.size,
+            uploadedAt: new Date().toISOString(),
+          });
+        } catch (uploadErr) {
+          const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+          setFormPdf({
+            name: file.name,
+            url: reader.result as string,
+            sizeFormatted: `${sizeMb} MB`,
+            sizeBytes: file.size,
+            uploadedAt: new Date().toISOString(),
+          });
+        } finally {
+          setIsUploadingPdf(false);
+        }
+      };
+      reader.onerror = () => {
+        setPdfUploadError('Failed to read PDF file.');
+        setIsUploadingPdf(false);
+      };
+    } catch (err: any) {
+      setPdfUploadError(err?.message || 'Error processing file.');
+      setIsUploadingPdf(false);
+    }
+  };
+
+  const handleTogglePin = async (postId: string) => {
+    if (!isAdmin) return;
+    const target = posts.find((p) => p.id === postId);
+    if (!target) return;
+
+    const newPinned = !target.isPinned;
+    const updated = posts.map((p) => (p.id === postId ? { ...p, isPinned: newPinned } : p));
+    setPosts(updated);
+    localStorage.setItem(LOCAL_STORAGE_FEED_KEY, JSON.stringify(updated));
+
+    try {
+      await fetch(`/api/db/feed/${postId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPinned: newPinned }),
+      });
+    } catch (e) {}
+    try {
+      await updateDoc(doc(db, 'feed_posts', postId), { isPinned: newPinned });
+    } catch (e) {}
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
@@ -149,6 +247,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       upvotedUserIds: [],
       comments: [],
       isPinned: false,
+      pdfAttachment: formPdf,
       createdAt: nowIso,
       updatedAt: nowIso,
     };
@@ -167,6 +266,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
     setNewTitle('');
     setNewContent('');
+    setFormPdf(undefined);
     setIsFormOpen(false);
     setIsSubmitting(false);
   };
@@ -292,20 +392,26 @@ export const FeedView: React.FC<FeedViewProps> = () => {
     }
   };
 
-  // Filter posts
-  const filteredPosts = posts.filter((p) => {
-    if (selectedCategory !== 'ALL' && p.category !== selectedCategory) {
-      return false;
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = p.title.toLowerCase().includes(q);
-      const matchContent = p.content.toLowerCase().includes(q);
-      const matchAuthor = p.authorName.toLowerCase().includes(q);
-      return matchTitle || matchContent || matchAuthor;
-    }
-    return true;
-  });
+  // Filter and sort posts (Pinned posts at the top)
+  const filteredPosts = posts
+    .filter((p) => {
+      if (selectedCategory !== 'ALL' && p.category !== selectedCategory) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = p.title.toLowerCase().includes(q);
+        const matchContent = p.content.toLowerCase().includes(q);
+        const matchAuthor = p.authorName.toLowerCase().includes(q);
+        return matchTitle || matchContent || matchAuthor;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
@@ -441,6 +547,63 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                 rows={4}
                 className="w-full px-3.5 py-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
               />
+            </div>
+
+            {/* PDF Handout Attachment */}
+            <div>
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                Attach Study Material / Question Paper PDF (Optional)
+              </label>
+
+              {formPdf ? (
+                <div className="p-3 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileText className="w-5 h-5 text-rose-400 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-zinc-100 truncate">{formPdf.name}</p>
+                      <span className="text-[10px] text-zinc-400 font-mono">{formPdf.sizeFormatted}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setActivePdfModal({ url: formPdf.url, title: formPdf.name, size: formPdf.sizeFormatted })}
+                      className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1 transition cursor-pointer"
+                    >
+                      <Eye className="w-3 h-3" />
+                      Preview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormPdf(undefined)}
+                      className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                      title="Remove PDF"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="border border-dashed border-zinc-800 hover:border-emerald-500/50 bg-zinc-900/30 hover:bg-zinc-900/60 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition">
+                    <Upload className="w-4 h-4 text-zinc-400" />
+                    <span className="text-xs text-zinc-300">
+                      {isUploadingPdf ? 'Uploading PDF...' : 'Attach PDF document (Up to 25MB)'}
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handlePdfUpload}
+                      disabled={isUploadingPdf}
+                      className="hidden"
+                    />
+                  </label>
+                  {pdfUploadError && (
+                    <p className="text-[11px] text-rose-400 mt-1">{pdfUploadError}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {formError && (
@@ -586,36 +749,99 @@ export const FeedView: React.FC<FeedViewProps> = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${getCategoryBadgeClass(
-                          post.category
-                        )}`}
-                      >
-                        {post.category}
-                      </span>
-
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-zinc-900 transition"
-                          title="Delete post"
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider border ${getCategoryBadgeClass(
+                            post.category
+                          )}`}
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                          {post.category}
+                        </span>
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleTogglePin(post.id)}
+                            className={`p-1.5 rounded-lg transition ${
+                              post.isPinned
+                                ? 'text-amber-400 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30'
+                                : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-900'
+                            }`}
+                            title={post.isPinned ? 'Unpin announcement' : 'Pin to top of feed'}
+                          >
+                            <Pin className={`w-3.5 h-3.5 ${post.isPinned ? 'fill-current' : ''}`} />
+                          </button>
+                        )}
+
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-zinc-900 transition"
+                            title="Delete post"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Post Title */}
-                  <h3 className="text-base sm:text-lg font-serif font-bold text-zinc-100 tracking-tight leading-snug">
-                    {post.title}
-                  </h3>
+                    {/* Post Title */}
+                    <h3 className="text-base sm:text-lg font-serif font-bold text-zinc-100 tracking-tight leading-snug">
+                      {post.title}
+                    </h3>
 
-                  {/* Post Content */}
-                  <p className="text-xs sm:text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {post.content}
-                  </p>
+                    {/* Post Content */}
+                    <p className="text-xs sm:text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                      {post.content}
+                    </p>
+
+                    {/* Attached PDF Material Card (if present) */}
+                    {post.pdfAttachment && (
+                      <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 shrink-0">
+                            <FileText className="w-4 h-4 text-rose-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 uppercase">
+                                PDF Document
+                              </span>
+                              <span className="text-[11px] text-zinc-400 font-mono">
+                                {post.pdfAttachment.sizeFormatted}
+                              </span>
+                            </div>
+                            <p className="text-xs font-semibold text-zinc-200 truncate mt-0.5">
+                              {post.pdfAttachment.name}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActivePdfModal({
+                                url: post.pdfAttachment!.url,
+                                title: post.pdfAttachment!.name,
+                                size: post.pdfAttachment!.sizeFormatted,
+                              })
+                            }
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 transition cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Read in App</span>
+                          </button>
+                          <a
+                            href={post.pdfAttachment.url}
+                            download
+                            className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
+                            title="Download PDF"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
 
                   {/* Bottom Controls Bar: Upvotes & Comments */}
                   <div className="flex items-center justify-between pt-3 border-t border-zinc-850">
@@ -751,6 +977,17 @@ export const FeedView: React.FC<FeedViewProps> = () => {
           })
         )}
       </div>
+
+      {/* PDF Viewer Reader Modal */}
+      {activePdfModal && (
+        <PdfViewerModal
+          isOpen={true}
+          onClose={() => setActivePdfModal(null)}
+          pdfUrl={activePdfModal.url}
+          title={activePdfModal.title}
+          fileSizeFormatted={activePdfModal.size}
+        />
+      )}
     </div>
   );
 };

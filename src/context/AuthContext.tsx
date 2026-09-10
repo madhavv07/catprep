@@ -151,14 +151,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Dynamic Database fetch
+    // Dynamic Database fetch with Shadow Vault Auto-Rehydration
+    const STUDENTS_VAULT_KEY = 'prepdesk_students_vault';
+
     const fetchStudents = async () => {
       try {
         const res = await fetch('/api/db/students');
         if (res.ok) {
           const list = await res.json();
           if (Array.isArray(list)) {
+            const rawVault = localStorage.getItem(STUDENTS_VAULT_KEY);
+            let cachedStudents: UserProfile[] = [];
+            if (rawVault) {
+              try {
+                const parsed = JSON.parse(rawVault);
+                if (Array.isArray(parsed)) cachedStudents = parsed;
+              } catch (e) {}
+            }
+
+            if (list.length === 0 && cachedStudents.length > 0) {
+              console.log(`[AutoRehydration] Server restarted with 0 students. Rehydrating ${cachedStudents.length} students from shadow vault...`);
+              await fetch('/api/db/restore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ users: cachedStudents }),
+              });
+              setStudents(cachedStudents);
+              return;
+            }
+
             setStudents(list);
+            if (list.length > 0) {
+              localStorage.setItem(STUDENTS_VAULT_KEY, JSON.stringify(list));
+            }
           }
         }
       } catch (e) {}
@@ -174,14 +199,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const parsed = JSON.parse(event.data);
           if (parsed.type === 'STUDENT_ENROLLED' && parsed.payload) {
-            setStudents((prev) => [parsed.payload, ...prev.filter((s) => s.studentId !== parsed.payload.studentId)]);
+            setStudents((prev) => {
+              const updated = [parsed.payload, ...prev.filter((s) => s.studentId !== parsed.payload.studentId)];
+              localStorage.setItem(STUDENTS_VAULT_KEY, JSON.stringify(updated));
+              return updated;
+            });
           } else if (parsed.type === 'STUDENT_PASSWORD_RESET' && parsed.payload) {
-            setStudents((prev) =>
-              prev.map((s) => (s.uid === parsed.payload.uid ? { ...s, currentPassword: parsed.payload.currentPassword } : s))
-            );
+            setStudents((prev) => {
+              const updated = prev.map((s) => (s.uid === parsed.payload.uid ? { ...s, currentPassword: parsed.payload.currentPassword } : s));
+              localStorage.setItem(STUDENTS_VAULT_KEY, JSON.stringify(updated));
+              return updated;
+            });
           } else if (parsed.type === 'STUDENT_DELETED' && parsed.payload) {
-            setStudents((prev) => prev.filter((s) => s.uid !== parsed.payload.uid));
-          } else if (parsed.type === 'DATABASE_RESET') {
+            setStudents((prev) => {
+              const updated = prev.filter((s) => s.uid !== parsed.payload.uid);
+              localStorage.setItem(STUDENTS_VAULT_KEY, JSON.stringify(updated));
+              return updated;
+            });
+          } else if (parsed.type === 'DATABASE_RESET' || parsed.type === 'DATABASE_RESTORED') {
             fetchStudents();
           }
         } catch (e) {}

@@ -17,6 +17,7 @@ import {
   deleteStudentFromDb,
   deleteAllTasksFromDb,
   resetCleanDatabase,
+  restoreDatabaseSnapshot,
   registerSseClient,
 } from './server/dbService.ts';
 
@@ -28,7 +29,15 @@ initDatabase();
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+// Ensure persistent uploads directory exists for PDF attachments
+const UPLOADS_DIR = path.join(process.cwd(), 'data', 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Cloud / Deployment Health Check Endpoint
 app.get('/api/health', (req, res) => {
@@ -533,6 +542,96 @@ app.delete('/api/db/feed/:postId/comments/:commentId', async (req, res) => {
     return res.json({ success: true, post: updated });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Export complete database snapshot
+app.get('/api/db/export', (req, res) => {
+  const snapshot = getDatabaseSnapshot();
+  return res.json(snapshot);
+});
+
+// Restore & Merge Database Snapshot (Auto-Rehydration Engine)
+app.post('/api/db/restore', async (req, res) => {
+  const snapshot = req.body;
+  if (!snapshot || typeof snapshot !== 'object') {
+    return res.status(400).json({ success: false, error: 'Invalid snapshot payload' });
+  }
+  try {
+    const restored = await restoreDatabaseSnapshot(snapshot);
+    const restoredTasksCount = Object.keys(restored.tasks || {}).length;
+    const restoredUsersCount = Object.keys(restored.users || {}).length;
+    const restoredFeedCount = Object.keys(restored.feedPosts || {}).length;
+    return res.json({
+      success: true,
+      ok: true,
+      message: 'Database state successfully rehydrated.',
+      restoredTasksCount,
+      restoredUsersCount,
+      restoredFeedCount,
+      stats: {
+        taskCount: restoredTasksCount,
+        userCount: restoredUsersCount,
+        feedCount: restoredFeedCount,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, ok: false, error: err.message || 'Rehydration failed' });
+  }
+});
+
+// Upload PDF study material or assignment attachment
+app.post('/api/db/upload-pdf', async (req, res) => {
+  const filename = req.body.filename || req.body.fileName;
+  const dataUrl = req.body.dataUrl || req.body.data;
+  const sizeFormatted = req.body.sizeFormatted;
+
+  if (!dataUrl) {
+    return res.status(400).json({ success: false, ok: false, error: 'No PDF data provided' });
+  }
+
+  try {
+    const rawName = (filename || 'document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeName = `${Date.now()}_${rawName}`;
+    const filePath = path.join(UPLOADS_DIR, safeName);
+
+    // If base64 dataUrl, write binary file to disk
+    if (dataUrl.includes('base64,')) {
+      const base64Data = dataUrl.split('base64,')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(filePath, buffer);
+    } else {
+      // Direct raw text or data URL
+      fs.writeFileSync(filePath, dataUrl, 'utf-8');
+    }
+
+    const fileStats = fs.existsSync(filePath) ? fs.statSync(filePath) : null;
+    const sizeBytes = fileStats ? fileStats.size : 0;
+    const formattedSize =
+      sizeFormatted ||
+      (sizeBytes > 1024 * 1024
+        ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
+        : `${Math.round(sizeBytes / 1024)} KB`);
+
+    const attachment = {
+      name: filename || rawName,
+      url: `/uploads/${safeName}`,
+      sizeFormatted: formattedSize,
+      sizeBytes,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    return res.json({
+      success: true,
+      ok: true,
+      name: attachment.name,
+      url: attachment.url,
+      sizeFormatted: attachment.sizeFormatted,
+      sizeBytes: attachment.sizeBytes,
+      attachment,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, ok: false, error: err.message || 'PDF upload failed' });
   }
 });
 

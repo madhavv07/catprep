@@ -16,12 +16,18 @@ import {
   Send,
   EyeOff,
   UserCheck,
-  Check
+  Check,
+  Maximize2,
+  ExternalLink,
+  FolderDown,
+  Youtube
 } from 'lucide-react';
 import { ClassTask, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
 import { useAuth } from '../../context/AuthContext';
 import { getDeadlineInfo, formatDatePretty, formatTime12h } from '../../utils/dateUtils';
+import { parseAllTaskLinks } from '../../utils/linkUtils';
+import { TaskDetailModal } from './TaskDetailModal';
 
 interface TaskCardProps {
   task: ClassTask;
@@ -37,10 +43,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const { taskProgress, toggleTaskCompletion, duplicateTask, deleteTask, publishTask, unpublishTask } = useTasks();
   const { isAdmin } = useAuth();
   const [expanded, setExpanded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isCompleted = !!taskProgress[task.id];
   const deadline = getDeadlineInfo(task.deadlineDate, task.deadlineTime, isCompleted);
+  const detectedLinks = parseAllTaskLinks(task.instructions, task.attachmentUrl);
 
   // Subject pill color
   const getSubjectBadge = (subject?: Subject) => {
@@ -98,7 +106,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all duration-200 bg-[#09090b] ${
+      className={`spotlight-card rounded-2xl border transition-all duration-200 bg-[#09090b] ${
         isCompleted
           ? 'border-emerald-900/40 bg-zinc-950/70 opacity-80'
           : deadline.isOverdue
@@ -178,8 +186,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           </div>
 
-          {/* Admin quick delete & expand toggle */}
+          {/* Admin quick delete, full inspector modal & expand toggle */}
           <div className="flex items-center gap-1 shrink-0">
+            {/* Inspect / Open Modal Button */}
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="p-1.5 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-950/30 rounded-lg transition shrink-0 cursor-pointer"
+              title="Open full task inspector"
+              aria-label="Open full task inspector"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+            </button>
+
             {isAdmin && (
               <button
                 type="button"
@@ -208,12 +227,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         {/* Task Title & Short description */}
         <div className="mt-3 pl-8">
           <h3
-            onClick={() => setExpanded(!expanded)}
-            className={`text-base sm:text-lg font-bold text-white cursor-pointer hover:text-emerald-400 transition leading-snug ${
+            onClick={() => setIsModalOpen(true)}
+            className={`text-base sm:text-lg font-bold text-white cursor-pointer hover:text-emerald-400 transition leading-snug flex items-center gap-2 group ${
               isCompleted ? 'line-through text-zinc-500' : ''
             }`}
           >
-            {task.title}
+            <span>{task.title}</span>
+            <Maximize2 className="w-3.5 h-3.5 text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0" />
           </h3>
 
           {task.shortDescription && (
@@ -245,6 +265,35 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   Submit: {formatDatePretty(task.deadlineDate)} ({formatTime12h(task.deadlineTime)})
                 </span>
               </div>
+            )}
+
+            {/* Rich Resource Badges */}
+            {task.pdfAttachment && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsModalOpen(true);
+                }}
+                className="flex items-center gap-1 text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-0.5 rounded-md hover:bg-rose-500/20 transition cursor-pointer"
+              >
+                <FileText className="w-3 h-3 text-rose-400" />
+                <span>PDF Handout</span>
+              </button>
+            )}
+
+            {detectedLinks.length > 0 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsModalOpen(true);
+                }}
+                className="flex items-center gap-1 text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded-md hover:bg-sky-500/20 transition cursor-pointer"
+              >
+                <ExternalLink className="w-3 h-3 text-sky-400" />
+                <span>{detectedLinks.length} {detectedLinks.length === 1 ? 'Link' : 'Links'}</span>
+              </button>
             )}
           </div>
         </div>
@@ -372,6 +421,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         )}
       </div>
+
+      {/* Full Task Inspector Modal */}
+      <TaskDetailModal
+        task={task}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onEdit={onEdit}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 };

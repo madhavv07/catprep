@@ -361,3 +361,96 @@ export async function deleteAllTasksFromDb(): Promise<boolean> {
   });
 }
 
+// Helper: Restore and Merge Database Snapshot (Auto-Rehydration Engine)
+export async function restoreDatabaseSnapshot(snapshot: any): Promise<DatabaseState> {
+  return await executeTransaction((state) => {
+    if (snapshot.tasks) {
+      if (Array.isArray(snapshot.tasks)) {
+        snapshot.tasks.forEach((t: any) => {
+          if (t && t.id) state.tasks[t.id] = t;
+        });
+      } else if (typeof snapshot.tasks === 'object') {
+        state.tasks = { ...state.tasks, ...snapshot.tasks };
+      }
+    }
+    if (snapshot.users) {
+      if (Array.isArray(snapshot.users)) {
+        snapshot.users.forEach((u: any) => {
+          if (u && (u.uid || u.studentId)) {
+            const key = u.uid || u.studentId;
+            state.users[key] = u;
+          }
+        });
+      } else if (typeof snapshot.users === 'object') {
+        state.users = { ...state.users, ...snapshot.users };
+      }
+    }
+    if (snapshot.personalTasks) {
+      if (Array.isArray(snapshot.personalTasks)) {
+        snapshot.personalTasks.forEach((p: any) => {
+          if (p && p.id) state.personalTasks[p.id] = p;
+        });
+      } else if (typeof snapshot.personalTasks === 'object') {
+        state.personalTasks = { ...state.personalTasks, ...snapshot.personalTasks };
+      }
+    }
+    if (snapshot.taskAssignments) {
+      if (Array.isArray(snapshot.taskAssignments)) {
+        snapshot.taskAssignments.forEach((a: any) => {
+          if (a && a.id) state.taskAssignments[a.id] = a;
+        });
+      } else if (typeof snapshot.taskAssignments === 'object') {
+        state.taskAssignments = { ...state.taskAssignments, ...snapshot.taskAssignments };
+      }
+    }
+    if (snapshot.feedPosts) {
+      if (Array.isArray(snapshot.feedPosts)) {
+        snapshot.feedPosts.forEach((f: any) => {
+          if (f && f.id) state.feedPosts[f.id] = f;
+        });
+      } else if (typeof snapshot.feedPosts === 'object') {
+        state.feedPosts = { ...state.feedPosts, ...snapshot.feedPosts };
+      }
+    }
+    if (snapshot.scheduleActivities) {
+      if (Array.isArray(snapshot.scheduleActivities)) {
+        snapshot.scheduleActivities.forEach((s: any) => {
+          if (s && s.id) state.scheduleActivities[s.id] = s;
+        });
+      } else if (typeof snapshot.scheduleActivities === 'object') {
+        state.scheduleActivities = { ...state.scheduleActivities, ...snapshot.scheduleActivities };
+      }
+    }
+
+    // Always ensure admin_madhav is present
+    if (!state.users['admin_madhav']) {
+      state.users['admin_madhav'] = {
+        uid: 'admin_madhav',
+        studentId: 'MADHAV',
+        email: 'madhav@prepdesk.edu',
+        displayName: 'Madhav (Administrator)',
+        role: 'admin',
+        batchId: 'B-CAT2701',
+        mentor: 'Administrator',
+        createdAt: '2026-09-01T00:00:00.000Z',
+        lastLoginAt: new Date().toISOString(),
+        passwordHash: 'madhav07',
+      };
+    }
+
+    return {
+      state,
+      result: state,
+      broadcastEvent: {
+        type: 'DATABASE_RESTORED',
+        payload: {
+          taskCount: Object.keys(state.tasks).length,
+          userCount: Object.keys(state.users).length,
+          feedCount: Object.keys(state.feedPosts || {}).length,
+        },
+      },
+    };
+  });
+}
+
+

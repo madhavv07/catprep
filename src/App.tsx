@@ -16,6 +16,7 @@ import { ManageAdminsView } from './components/admin/ManageAdminsView';
 import { TaskStatisticsView } from './components/admin/TaskStatisticsView';
 import { ProfileView } from './components/profile/ProfileView';
 import { FeedView } from './components/feed/FeedView';
+import { CustomCursor } from './components/common/CustomCursor';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -392,6 +393,7 @@ export function App() {
       <NotificationProvider>
         <TaskProvider>
           <VocabProvider>
+            <CustomCursor />
             <MainApp />
           </VocabProvider>
         </TaskProvider>

@@ -167,15 +167,42 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user?.uid]);
 
-  // Database sync helper functions
+  const SHADOW_VAULT_KEY = 'prepdesk_shadow_vault';
+
+  // Database sync helper functions with Dual-Resilience Auto-Rehydration
   const fetchTasksFromDb = async () => {
     try {
       const res = await fetch('/api/db/tasks');
       if (res.ok) {
         const list = await res.json();
         if (Array.isArray(list)) {
+          // If server was wiped (e.g. fresh Render deploy) but shadow vault has tasks
+          const rawVault = localStorage.getItem(SHADOW_VAULT_KEY);
+          let cachedTasks: ClassTask[] = [];
+          if (rawVault) {
+            try {
+              const parsed = JSON.parse(rawVault);
+              if (Array.isArray(parsed.tasks)) cachedTasks = parsed.tasks;
+            } catch (e) {}
+          }
+
+          if (list.length === 0 && cachedTasks.length > 0) {
+            console.log(`[AutoRehydration] Server restarted empty. Rehydrating ${cachedTasks.length} tasks from shadow vault...`);
+            await fetch('/api/db/restore', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tasks: cachedTasks }),
+            });
+            setTasks(cachedTasks);
+            localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(cachedTasks));
+            return;
+          }
+
           setTasks(list);
           localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(list));
+          if (list.length > 0) {
+            localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: list, updatedAt: new Date().toISOString() }));
+          }
         }
       }
     } catch (e) {}
@@ -229,7 +256,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             parsed.type === 'TASK_CREATED' ||
             parsed.type === 'TASK_UPDATED' ||
             parsed.type === 'TASK_DELETED' ||
-            parsed.type === 'DATABASE_RESET'
+            parsed.type === 'DATABASE_RESET' ||
+            parsed.type === 'DATABASE_RESTORED'
           ) {
             fetchTasksFromDb();
           }

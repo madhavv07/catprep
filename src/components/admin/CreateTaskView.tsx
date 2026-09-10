@@ -4,10 +4,28 @@ import {
   AlertCircle,
   ArrowLeft,
   Check,
+  Calendar,
+  Clock,
+  BookOpen,
+  FileText,
+  Upload,
+  X,
+  Eye,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { useTasks } from '../../context/TaskContext';
-import { ClassTask, Subject, TaskPriority, TaskPublishStatus, ActiveView } from '../../types';
-import { getTodayDateString } from '../../utils/dateUtils';
+import {
+  ClassTask,
+  Subject,
+  TaskPriority,
+  TaskPublishStatus,
+  ActiveView,
+  PdfAttachment,
+  ScheduleActivity,
+} from '../../types';
+import { getTodayDateString, formatDatePretty } from '../../utils/dateUtils';
+import { PdfViewerModal } from '../common/PdfViewerModal';
 
 interface CreateTaskViewProps {
   taskToEdit?: ClassTask | null;
@@ -20,9 +38,11 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
   onDone,
   setActiveView,
 }) => {
-  const { createTask, updateTask } = useTasks();
+  const { createTask, updateTask, scheduleActivities } = useTasks();
 
   const [subject, setSubject] = useState<Subject>(taskToEdit?.subject || 'VARC');
+  const [topic, setTopic] = useState(taskToEdit?.topic || '');
+  const [subtopic, setSubtopic] = useState(taskToEdit?.subtopic || '');
   const [title, setTitle] = useState(taskToEdit?.title || '');
   const [shortDescription, setShortDescription] = useState(taskToEdit?.shortDescription || '');
   const [instructions, setInstructions] = useState(taskToEdit?.instructions || '');
@@ -39,13 +59,27 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
   const [priority, setPriority] = useState<TaskPriority>(taskToEdit?.priority || 'Normal');
   const [status, setStatus] = useState<TaskPublishStatus>(taskToEdit?.status || 'published');
 
+  // Timetable quick selection states
+  const [assignedMode, setAssignedMode] = useState<'timetable' | 'custom'>('timetable');
+  const [deadlineMode, setDeadlineMode] = useState<'timetable' | 'custom'>('timetable');
+  const [selectedAssignedActId, setSelectedAssignedActId] = useState('');
+  const [selectedDeadlineActId, setSelectedDeadlineActId] = useState('');
+
+  // PDF Attachment State
+  const [pdfAttachment, setPdfAttachment] = useState<PdfAttachment | undefined>(taskToEdit?.pdfAttachment);
+  const [isUploadingPdf, setIsUploadingPdf] = useState(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string | null>(null);
+  const [previewPdfModal, setPreviewPdfModal] = useState<PdfAttachment | null>(null);
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     if (taskToEdit) {
-      setSubject(taskToEdit.subject);
+      setSubject(taskToEdit.subject || (taskToEdit.section as any) || 'VARC');
+      setTopic(taskToEdit.topic || '');
+      setSubtopic(taskToEdit.subtopic || '');
       setTitle(taskToEdit.title);
       setShortDescription(taskToEdit.shortDescription);
       setInstructions(taskToEdit.instructions);
@@ -59,8 +93,112 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
       setAdditionalNotes(taskToEdit.additionalNotes || '');
       setPriority(taskToEdit.priority);
       setStatus(taskToEdit.status);
+      setPdfAttachment(taskToEdit.pdfAttachment);
     }
   }, [taskToEdit]);
+
+  // Handle Assigned Lecture Selection
+  const handleSelectAssignedLecture = (activityId: string) => {
+    setSelectedAssignedActId(activityId);
+    if (!activityId) return;
+
+    const act = scheduleActivities.find((a) => a.id === activityId);
+    if (!act) return;
+
+    const lectureLabel = `${act.subtopicCode} (${act.topic})`;
+    setGivenInLecture(lectureLabel);
+    setAssignedDate(act.date);
+    if (!topic) setTopic(act.topic);
+    if (!subtopic) setSubtopic(act.subtopicCode);
+
+    // Sync subject
+    if (act.section === 'VARC') setSubject('VARC');
+    else if (act.section === 'DILR') setSubject('DILR');
+    else if (act.section === 'QUANTS') setSubject('QUANT');
+  };
+
+  // Handle Deadline Lecture Selection
+  const handleSelectDeadlineLecture = (activityId: string) => {
+    setSelectedDeadlineActId(activityId);
+    if (!activityId) return;
+
+    const act = scheduleActivities.find((a) => a.id === activityId);
+    if (!act) return;
+
+    const deadlineLabel = `Start of ${act.subtopicCode} (${act.topic})`;
+    setSubmissionLecture(deadlineLabel);
+    setDeadlineDate(act.date);
+    setDeadlineTime(act.startTime || '16:00');
+  };
+
+  // PDF File Upload Handler
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      setPdfUploadError('Please select a valid PDF file.');
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      setPdfUploadError('PDF exceeds the 25MB maximum limit.');
+      return;
+    }
+
+    setIsUploadingPdf(true);
+    setPdfUploadError(null);
+
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Content = reader.result as string;
+          const res = await fetch('/api/db/upload-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: file.name,
+              data: base64Content,
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error(`Server returned ${res.status}`);
+          }
+
+          const data = await res.json();
+          setPdfAttachment({
+            name: data.name || file.name,
+            url: data.url,
+            sizeFormatted: data.sizeFormatted || `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
+            sizeBytes: data.sizeBytes || file.size,
+            uploadedAt: new Date().toISOString(),
+          });
+        } catch (uploadErr: any) {
+          // Fallback to local base64 URL if server endpoint has an issue
+          const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+          setPdfAttachment({
+            name: file.name,
+            url: reader.result as string,
+            sizeFormatted: `${sizeMb} MB`,
+            sizeBytes: file.size,
+            uploadedAt: new Date().toISOString(),
+          });
+        } finally {
+          setIsUploadingPdf(false);
+        }
+      };
+      reader.onerror = () => {
+        setPdfUploadError('Failed to read PDF file.');
+        setIsUploadingPdf(false);
+      };
+    } catch (err: any) {
+      setPdfUploadError(err?.message || 'Error processing file.');
+      setIsUploadingPdf(false);
+    }
+  };
 
   const handleSubmit = async (publishImmediate: boolean = false) => {
     if (!title.trim()) {
@@ -76,11 +214,15 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
     setSaving(true);
 
     const finalStatus = publishImmediate ? 'published' : status;
+    const catSection = subject === 'QUANT' ? 'QUANTS' : (subject as 'VARC' | 'DILR');
 
     try {
       if (taskToEdit) {
         await updateTask(taskToEdit.id, {
+          section: catSection,
           subject,
+          topic: topic.trim() || title.trim(),
+          subtopic: subtopic.trim() || 'Core',
           title: title.trim(),
           shortDescription: shortDescription.trim(),
           instructions: instructions.trim(),
@@ -94,10 +236,14 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           additionalNotes: additionalNotes.trim() || undefined,
           priority,
           status: finalStatus,
+          pdfAttachment: pdfAttachment || undefined,
         });
       } else {
         await createTask({
+          section: catSection,
           subject,
+          topic: topic.trim() || title.trim(),
+          subtopic: subtopic.trim() || 'Core',
           title: title.trim(),
           shortDescription: shortDescription.trim(),
           instructions: instructions.trim(),
@@ -111,6 +257,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           additionalNotes: additionalNotes.trim() || undefined,
           priority,
           status: finalStatus,
+          pdfAttachment: pdfAttachment || undefined,
         });
       }
 
@@ -127,7 +274,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 pb-16 animate-in fade-in duration-200">
+    <div className="max-w-3xl mx-auto space-y-6 pb-20 animate-in fade-in duration-200">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
         <div>
@@ -181,7 +328,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
       )}
 
       {/* Form Fields */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-5">
+      <div className="p-6 sm:p-8 rounded-3xl bg-zinc-950 border border-zinc-800/80 shadow-xs space-y-6">
         {/* Subject & Priority */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -229,6 +376,34 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           />
         </div>
 
+        {/* Topic & Subtopic code */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+              Topic / Theme
+            </label>
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g. Critical Reasoning, Percentages, Circular Arrangements"
+              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+              Subtopic Code (Optional)
+            </label>
+            <input
+              type="text"
+              value={subtopic}
+              onChange={(e) => setSubtopic(e.target.value)}
+              placeholder="e.g. VA 1.2, QA 1.5A, LR 2.1"
+              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60 transition"
+            />
+          </div>
+        </div>
+
         {/* Short description */}
         <div>
           <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
@@ -243,74 +418,277 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           />
         </div>
 
-        {/* Detailed Instructions */}
+        {/* Detailed Instructions (Supports Links!) */}
         <div>
-          <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-            Full Instructions & Problem Numbers
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Full Instructions & Study Links
+            </label>
+            <span className="text-[11px] text-zinc-500">
+              💡 Paste Drive, YouTube, or article URLs here to create rich interactive cards!
+            </span>
+          </div>
           <textarea
             rows={4}
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            placeholder="Provide step-by-step instructions, question numbers from handout, or reading guidance..."
+            placeholder="Provide step-by-step instructions, question numbers from handout, or paste resource links like Google Drive sheets or YouTube lectures..."
             className="w-full p-3 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl leading-relaxed focus:outline-none focus:border-emerald-500/60 transition font-sans"
           />
         </div>
 
-        {/* Lecture & Dates */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Given In Lecture
+        {/* SMART TIMETABLE INTEGRATION: Assigned in Lecture Picker */}
+        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+              1. Assigned In Lecture / Date
             </label>
-            <input
-              type="text"
-              value={givenInLecture}
-              onChange={(e) => setGivenInLecture(e.target.value)}
-              placeholder="e.g. Lecture 12 (Critical Reasoning)"
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
-            />
+            <div className="flex items-center gap-1 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setAssignedMode('timetable')}
+                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                  assignedMode === 'timetable'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Select from Timetable
+              </button>
+              <button
+                type="button"
+                onClick={() => setAssignedMode('custom')}
+                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                  assignedMode === 'custom'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Custom
+              </button>
+            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Assigned Date
-            </label>
-            <input
-              type="date"
-              value={assignedDate}
-              onChange={(e) => setAssignedDate(e.target.value)}
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Deadline Date *
-            </label>
-            <input
-              type="date"
-              value={deadlineDate}
-              onChange={(e) => setDeadlineDate(e.target.value)}
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
-            />
-          </div>
+          {assignedMode === 'timetable' ? (
+            <div>
+              <select
+                value={selectedAssignedActId}
+                onChange={(e) => handleSelectAssignedLecture(e.target.value)}
+                className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
+              >
+                <option value="">-- Choose Scheduled Class Lecture --</option>
+                {scheduleActivities.map((act) => (
+                  <option key={act.id} value={act.id}>
+                    {act.date} ({act.day.slice(0, 3)}) | [{act.section}] {act.subtopicCode}: {act.topic}
+                  </option>
+                ))}
+              </select>
+              {givenInLecture && (
+                <p className="text-[11px] text-emerald-400/90 mt-1.5 flex items-center gap-1 font-mono">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Assigned in: {givenInLecture} (Date: {assignedDate})
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <span className="text-[11px] text-zinc-400 block mb-1">Lecture Name / Description</span>
+                <input
+                  type="text"
+                  value={givenInLecture}
+                  onChange={(e) => setGivenInLecture(e.target.value)}
+                  placeholder="e.g. Lecture 12 (Critical Reasoning)"
+                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-400 block mb-1">Assigned Date</span>
+                <input
+                  type="date"
+                  value={assignedDate}
+                  onChange={(e) => setAssignedDate(e.target.value)}
+                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Deadline Time & Submission Method */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Deadline Time (24h format)
+        {/* SMART TIMETABLE INTEGRATION: Deadline & Target Lecture Picker */}
+        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              2. Deadline & Target Submission Lecture *
             </label>
-            <input
-              type="time"
-              value={deadlineTime}
-              onChange={(e) => setDeadlineTime(e.target.value)}
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-emerald-500/60"
-            />
+            <div className="flex items-center gap-1 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setDeadlineMode('timetable')}
+                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                  deadlineMode === 'timetable'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Target Class Lecture
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeadlineMode('custom')}
+                className={`px-2 py-0.5 rounded-md font-medium transition ${
+                  deadlineMode === 'custom'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                Custom Date/Time
+              </button>
+            </div>
           </div>
 
+          {deadlineMode === 'timetable' ? (
+            <div className="space-y-3">
+              <select
+                value={selectedDeadlineActId}
+                onChange={(e) => handleSelectDeadlineLecture(e.target.value)}
+                className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-700 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+              >
+                <option value="">-- Choose Target Class for Deadline --</option>
+                {scheduleActivities.map((act) => (
+                  <option key={act.id} value={act.id}>
+                    {act.date} ({act.day.slice(0, 3)}) | [{act.section}] {act.subtopicCode}: {act.topic}
+                  </option>
+                ))}
+              </select>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <span className="text-[11px] text-zinc-400 block mb-1">Deadline Date</span>
+                  <input
+                    type="date"
+                    value={deadlineDate}
+                    onChange={(e) => setDeadlineDate(e.target.value)}
+                    className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                  />
+                </div>
+                <div>
+                  <span className="text-[11px] text-zinc-400 block mb-1">Deadline Time (24h)</span>
+                  <input
+                    type="time"
+                    value={deadlineTime}
+                    onChange={(e) => setDeadlineTime(e.target.value)}
+                    className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                  />
+                </div>
+              </div>
+
+              {submissionLecture && (
+                <p className="text-[11px] text-amber-400/90 font-mono flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Submission expected at: {submissionLecture} ({deadlineDate})
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <span className="text-[11px] text-zinc-400 block mb-1">Deadline Date *</span>
+                <input
+                  type="date"
+                  value={deadlineDate}
+                  onChange={(e) => setDeadlineDate(e.target.value)}
+                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-400 block mb-1">Deadline Time (24h)</span>
+                <input
+                  type="time"
+                  value={deadlineTime}
+                  onChange={(e) => setDeadlineTime(e.target.value)}
+                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl focus:outline-none focus:border-amber-500/60"
+                />
+              </div>
+              <div>
+                <span className="text-[11px] text-zinc-400 block mb-1">Target Lecture (Optional)</span>
+                <input
+                  type="text"
+                  value={submissionLecture}
+                  onChange={(e) => setSubmissionLecture(e.target.value)}
+                  placeholder="e.g. Start of Lecture 14"
+                  className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-amber-500/60"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* PDF ATTACHMENT SECTION */}
+        <div className="p-4 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-3">
+          <label className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+            <FileText className="w-3.5 h-3.5 text-rose-400" />
+            3. Attach PDF Handout / Worksheet (Optional)
+          </label>
+
+          {pdfAttachment ? (
+            <div className="p-3 rounded-2xl bg-rose-950/20 border border-rose-900/50 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <FileText className="w-5 h-5 text-rose-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-zinc-100 truncate">{pdfAttachment.name}</p>
+                  <span className="text-[10px] text-zinc-400 font-mono">{pdfAttachment.sizeFormatted}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPreviewPdfModal(pdfAttachment)}
+                  className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 flex items-center gap-1 transition cursor-pointer"
+                >
+                  <Eye className="w-3 h-3" />
+                  Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPdfAttachment(undefined)}
+                  className="p-1 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-950/40 transition"
+                  title="Remove PDF"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="border border-dashed border-zinc-700 hover:border-emerald-500/50 bg-zinc-900/50 hover:bg-zinc-900 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition">
+                <Upload className="w-5 h-5 text-zinc-400" />
+                <div className="text-center">
+                  <span className="text-xs font-semibold text-zinc-300 block">
+                    {isUploadingPdf ? 'Uploading PDF...' : 'Click or drop PDF handout to attach'}
+                  </span>
+                  <span className="text-[11px] text-zinc-500">Up to 25MB • Students can view in-app</span>
+                </div>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handlePdfUpload}
+                  disabled={isUploadingPdf}
+                  className="hidden"
+                />
+              </label>
+              {pdfUploadError && (
+                <p className="text-[11px] text-rose-400 mt-1.5">{pdfUploadError}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Submission Method & Publish Status */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
               Submission Method / Medium
@@ -320,23 +698,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
               value={submissionMethod}
               onChange={(e) => setSubmissionMethod(e.target.value)}
               placeholder="e.g. Handwritten notebook in class, or Portal upload"
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
-            />
-          </div>
-        </div>
-
-        {/* Target Submission Lecture & Notes */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Target Submission Lecture (Optional)
-            </label>
-            <input
-              type="text"
-              value={submissionLecture}
-              onChange={(e) => setSubmissionLecture(e.target.value)}
-              placeholder="e.g. Start of Lecture 14"
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
+              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 rounded-xl focus:outline-none focus:border-emerald-500/60"
             />
           </div>
 
@@ -347,7 +709,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskPublishStatus)}
-              className="w-full p-2 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl font-medium focus:outline-none focus:border-emerald-500/60"
+              className="w-full p-2.5 text-xs bg-zinc-900 border border-zinc-800 text-zinc-200 rounded-xl font-medium focus:outline-none focus:border-emerald-500/60"
             >
               <option value="published">Published (Visible to all students)</option>
               <option value="draft">Draft (Admin only)</option>
@@ -355,7 +717,7 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           </div>
         </div>
 
-        {/* Admin Advisory Notes */}
+        {/* Admin Guidance Notes */}
         <div>
           <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
             Admin Advisory / Guidance Notes
@@ -369,6 +731,17 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           />
         </div>
       </div>
+
+      {/* PDF Viewer Preview Modal */}
+      {previewPdfModal && (
+        <PdfViewerModal
+          isOpen={true}
+          onClose={() => setPreviewPdfModal(null)}
+          pdfUrl={previewPdfModal.url}
+          title={previewPdfModal.name}
+          fileSizeFormatted={previewPdfModal.sizeFormatted}
+        />
+      )}
     </div>
   );
 };

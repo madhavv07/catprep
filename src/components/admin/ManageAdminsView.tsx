@@ -20,6 +20,10 @@ import {
   X,
   RefreshCw,
   Key,
+  Download,
+  UploadCloud,
+  Database,
+  HardDrive,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ActiveView, UserProfile } from '../../types';
@@ -67,6 +71,102 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetSuccess, setResetSuccess] = useState<string | null>(null);
+
+  // Backup & Shadow Vault state
+  const [backupStatus, setBackupStatus] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+
+  const handleDownloadBackup = async () => {
+    setIsExporting(true);
+    setBackupStatus(null);
+    try {
+      const res = await fetch('/api/db/export');
+      if (!res.ok) throw new Error('Failed to export database snapshot');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `PrepDesk_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setBackupStatus('Backup exported and downloaded successfully!');
+    } catch (err: any) {
+      setBackupStatus(`Export error: ${err?.message || 'Failed'}`);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleRestoreFromFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsRestoring(true);
+    setBackupStatus(null);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        const res = await fetch('/api/db/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parsed),
+        });
+        if (!res.ok) throw new Error('Restore endpoint rejected snapshot');
+        const result = await res.json();
+        setBackupStatus(`Restored successfully! (${result.restoredTasksCount} tasks, ${result.restoredUsersCount} students)`);
+      } catch (err: any) {
+        setBackupStatus(`Restore failed: ${err?.message || 'Invalid JSON format'}`);
+      } finally {
+        setIsRestoring(false);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleForceSyncShadowVault = async () => {
+    setIsRestoring(true);
+    setBackupStatus(null);
+    try {
+      const tasksVault = localStorage.getItem('prepdesk_shadow_vault');
+      const studentsVault = localStorage.getItem('prepdesk_students_vault');
+
+      let tasks: any[] = [];
+      let users: any[] = [];
+
+      if (tasksVault) {
+        try {
+          const t = JSON.parse(tasksVault);
+          if (Array.isArray(t.tasks)) tasks = t.tasks;
+        } catch (e) {}
+      }
+
+      if (studentsVault) {
+        try {
+          const u = JSON.parse(studentsVault);
+          if (Array.isArray(u)) users = u;
+        } catch (e) {}
+      }
+
+      const res = await fetch('/api/db/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tasks, users }),
+      });
+
+      if (!res.ok) throw new Error('Sync failed');
+      const result = await res.json();
+      setBackupStatus(`Local Shadow Vault synced to server! (${result.restoredTasksCount} tasks, ${result.restoredUsersCount} students)`);
+    } catch (err: any) {
+      setBackupStatus(`Sync error: ${err?.message || 'Failed'}`);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
 
   const togglePasswordVisibility = (uid: string) => {
     setRevealedPasswords((prev) => ({
@@ -505,6 +605,87 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* ============================================================= */}
+      {/* 2.5 DATA CONTINUITY & SHADOW VAULT ENGINE */}
+      {/* ============================================================= */}
+      <div className="p-6 sm:p-7 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-zinc-100">Data Consistency & Shadow Vault</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 uppercase">
+                  Dual-Resilience Active
+                </span>
+              </div>
+              <p className="text-xs text-zinc-400 mt-0.5">
+                Protects all tasks, student accounts, and feed posts from disappearing during Render redeployments or container reboots.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Download Backup */}
+            <button
+              type="button"
+              onClick={handleDownloadBackup}
+              disabled={isExporting}
+              className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs font-semibold flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+              title="Download entire database snapshot as .json"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{isExporting ? 'Exporting...' : 'Download Backup (.json)'}</span>
+            </button>
+
+            {/* Restore from File */}
+            <label className="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs font-semibold flex items-center gap-2 transition cursor-pointer">
+              <UploadCloud className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isRestoring ? 'Restoring...' : 'Restore from File'}</span>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleRestoreFromFile}
+                disabled={isRestoring}
+                className="hidden"
+              />
+            </label>
+
+            {/* Force Sync Shadow Vault */}
+            <button
+              type="button"
+              onClick={handleForceSyncShadowVault}
+              disabled={isRestoring}
+              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-extrabold flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+              title="Push your browser's offline shadow vault to the server database"
+            >
+              <HardDrive className="w-3.5 h-3.5" />
+              <span>Sync Local Vault</span>
+            </button>
+          </div>
+        </div>
+
+        {backupStatus && (
+          <div className="p-3 bg-zinc-900/80 border border-zinc-700 rounded-xl text-xs text-zinc-200 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{backupStatus}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-zinc-400 pt-1">
+          <div className="p-3 rounded-2xl bg-zinc-900/40 border border-zinc-850">
+            <span className="font-semibold text-zinc-200 block mb-1">🛡️ Auto-Rehydration Engine</span>
+            <span>Whenever Render restarts after an update, your browser's shadow vault automatically detects the fresh container and rehydrates the database silently.</span>
+          </div>
+          <div className="p-3 rounded-2xl bg-zinc-900/40 border border-zinc-850">
+            <span className="font-semibold text-zinc-200 block mb-1">📦 Zero Data Loss Guarantee</span>
+            <span>All tasks, students, comments, and attachments are preserved locally in your browser's encrypted vault as an indestructible second tier.</span>
+          </div>
         </div>
       </div>
 

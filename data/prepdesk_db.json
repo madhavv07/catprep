@@ -1,6 +1,6 @@
 {
-  "version": 22,
-  "lastModified": "2026-09-09T20:29:44.606Z",
+  "version": 2,
+  "lastModified": "2026-09-10T09:10:13.569Z",
   "users": {
     "admin_madhav": {
       "uid": "admin_madhav",
@@ -11,7 +11,7 @@
       "batchId": "B-CAT2701",
       "mentor": "Administrator",
       "createdAt": "2026-09-01T00:00:00.000Z",
-      "lastLoginAt": "2026-09-09T20:29:44.570Z",
+      "lastLoginAt": "2026-09-10T09:10:13.569Z",
       "passwordHash": "madhav07"
     }
   },
