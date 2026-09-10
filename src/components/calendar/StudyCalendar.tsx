@@ -166,10 +166,10 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
   return (
     <div className="space-y-6 pb-16 animate-in fade-in duration-200 text-zinc-100">
       {/* Top Header Card */}
-      <div className="p-6 rounded-2xl bg-[#09090b] border border-zinc-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 rounded-2xl glass-panel border border-white/[0.08] shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/60 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase tracking-wider">
               Batch B-CAT2701
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-zinc-900 text-zinc-400 border border-zinc-800">
@@ -177,7 +177,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-            <CalendarIcon className="w-7 h-7 text-emerald-400" />
+            <CalendarIcon className="w-7 h-7 text-indigo-400" />
             CAT Master Schedule & Calendar
           </h1>
           <p className="text-xs text-zinc-400 mt-1">
@@ -193,7 +193,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
               setCurrentMonth(8);
               setSelectedDate('2026-09-10');
             }}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Today (Sept 10)</span>
@@ -231,7 +231,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
             onClick={() => setFilterSection(filter)}
             className={`px-3 py-1 rounded-lg text-xs font-semibold transition border ${
               filterSection === filter
-                ? 'bg-emerald-500 text-black border-emerald-500 shadow-xs'
+                ? 'bg-indigo-600 text-white border-indigo-500 shadow-xs shadow-indigo-500/20'
                 : 'bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border-zinc-800'
             }`}
           >
@@ -298,9 +298,9 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                       !day.isCurrentMonth
                         ? 'opacity-25 border-transparent bg-zinc-950/30'
                         : isSelected
-                        ? 'border-emerald-500 bg-emerald-950/20 shadow-xs'
+                        ? 'border-indigo-500 bg-indigo-950/20 shadow-xs shadow-indigo-500/10'
                         : day.isToday
-                        ? 'border-emerald-500/50 bg-zinc-900/90'
+                        ? 'border-indigo-500/50 bg-zinc-900/90'
                         : 'border-zinc-800/80 bg-zinc-900/40 hover:bg-zinc-800/60'
                     }`}
                   >
@@ -309,16 +309,16 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                       <span
                         className={`text-xs font-semibold rounded-md w-5 h-5 flex items-center justify-center ${
                           day.isToday
-                            ? 'bg-emerald-500 text-black font-bold'
+                            ? 'bg-indigo-600 text-white font-bold'
                             : isSelected
-                            ? 'text-emerald-400 font-bold'
+                            ? 'text-indigo-400 font-bold'
                             : 'text-zinc-400'
                         }`}
                       >
                         {day.dayNumber}
                       </span>
                       {day.isToday && (
-                        <span className="hidden sm:inline-block text-[9px] font-bold text-emerald-400 uppercase tracking-wider">
+                        <span className="hidden sm:inline-block text-[9px] font-bold text-indigo-400 uppercase tracking-wider">
                           Today
                         </span>
                       )}
@@ -568,9 +568,9 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                   onClick={() => setSelectedActivity(session)}
                   className={`p-4 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:scale-[1.005] ${
                     isToday
-                      ? 'bg-emerald-950/30 border-emerald-500/60 shadow-xs'
+                      ? 'bg-indigo-950/30 border-indigo-500/60 shadow-xs shadow-indigo-500/10'
                       : isNext
-                      ? 'bg-zinc-900 border-zinc-700 hover:border-emerald-500/40'
+                      ? 'bg-zinc-900 border-zinc-700 hover:border-indigo-500/40'
                       : isPast
                       ? 'bg-zinc-950/60 border-zinc-800/60 opacity-70'
                       : 'bg-zinc-900/60 border-zinc-800 hover:border-zinc-700'
@@ -593,7 +593,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                       <div className="flex items-center gap-2">
                         <h4 className="text-sm font-bold text-white">{session.topic}</h4>
                         {isToday && (
-                          <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500 text-black uppercase">
+                          <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-indigo-600 text-white uppercase">
                             Today
                           </span>
                         )}
@@ -619,7 +619,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${
                         isPast
                           ? 'bg-zinc-900 border-zinc-800 text-zinc-400'
-                          : 'bg-emerald-950/60 border-emerald-800/40 text-emerald-400'
+                          : 'bg-indigo-950/60 border-indigo-800/40 text-indigo-300'
                       }`}
                     >
                       {isPast ? 'Completed' : 'Upcoming'}
@@ -689,7 +689,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
                   setSelectedActivity(null);
                   setActiveView('my-tasks');
                 }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition flex items-center justify-center gap-1.5"
+                className="flex-1 py-2.5 px-4 rounded-xl btn-primary-glass text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <BookOpen className="w-4 h-4" />
                 <span>View Linked Tasks</span>

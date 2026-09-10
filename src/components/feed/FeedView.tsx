@@ -386,7 +386,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       case 'DILR':
         return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
       case 'QUANT':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+        return 'bg-violet-500/10 text-violet-300 border-violet-500/30';
       default:
         return 'bg-zinc-900 text-zinc-400 border-zinc-800';
     }
@@ -419,7 +419,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/[0.08] shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase tracking-wider">
               Student Public Chat & Feed
             </span>
             <span className="text-xs text-zinc-600">&bull;</span>
@@ -445,7 +445,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       {/* 2. Quick Action Templates Bar */}
       <div className="glass-card p-4 rounded-2xl border border-white/[0.08] flex flex-col sm:flex-row sm:items-center gap-2.5">
         <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 shrink-0">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           Quick Inquiries:
         </span>
         <div className="flex flex-wrap gap-2">
@@ -490,7 +490,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
         <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-white/[0.12] shadow-2xl space-y-4 animate-in slide-in-from-top-2 duration-150">
           <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
             <h3 className="font-semibold text-white text-base flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
+              <MessageSquare className="w-4 h-4 text-indigo-400" />
               Ask a Question or Post to Community
             </h3>
             <span className="text-xs text-zinc-400">

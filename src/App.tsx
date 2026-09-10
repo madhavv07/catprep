@@ -93,11 +93,11 @@ const MainApp: React.FC = () => {
   // 2. Beautiful, modern, high-aesthetic sign-in experience
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-10 text-zinc-100 selection:bg-emerald-500 selection:text-black relative overflow-y-auto">
+      <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-10 text-zinc-100 selection:bg-indigo-500 selection:text-white relative overflow-y-auto">
         {/* Ambient atmospheric glows */}
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[180px] pointer-events-none" />
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-violet-500/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-[180px] pointer-events-none" />
 
         {/* Subtle grid pattern overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
@@ -106,8 +106,8 @@ const MainApp: React.FC = () => {
           {/* Left Column: Brand Hero & Value Proposition */}
           <div className="lg:col-span-7 space-y-6 text-left">
             {/* Cohort Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-medium shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
               <span>OFFICIAL STUDY DESK · BATCH B-CAT2701</span>
             </div>
 
@@ -115,7 +115,7 @@ const MainApp: React.FC = () => {
             <div className="space-y-3">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
                 Engineered for{' '}
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-indigo-400 via-violet-300 to-cyan-400 bg-clip-text text-transparent">
                   CAT 2027 Mastery.
                 </span>
               </h1>
@@ -127,7 +127,7 @@ const MainApp: React.FC = () => {
             {/* Feature Highlights Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
               <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
                   <Zap className="w-4 h-4" />
                 </div>
                 <h2 className="text-xs font-bold text-white tracking-tight">Real-Time Sync</h2>
@@ -137,7 +137,7 @@ const MainApp: React.FC = () => {
               </div>
 
               <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
-                <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400">
+                <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <h2 className="text-xs font-bold text-white tracking-tight">ACID Isolated Progress</h2>
@@ -157,7 +157,7 @@ const MainApp: React.FC = () => {
               </div>
 
               <div className="p-4 rounded-2xl glass-card space-y-1.5 hover:border-white/[0.18] transition">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-300">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300">
                   <BookOpen className="w-4 h-4" />
                 </div>
                 <h2 className="text-xs font-bold text-white tracking-tight">Vocab Vault & Lexical Engine</h2>
@@ -170,11 +170,11 @@ const MainApp: React.FC = () => {
             {/* Bottom Status Pill */}
             <div className="flex items-center gap-6 pt-2 text-xs text-zinc-500 font-mono">
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-indigo-400" />
                 <span>Real-Time Engine Active</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Target: CAT 2027</span>
               </div>
             </div>
@@ -184,12 +184,12 @@ const MainApp: React.FC = () => {
           <div className="lg:col-span-5 w-full">
             <div className="relative group">
               {/* Subtle outer glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-700" />
+              <div className="absolute -inset-0.5 bg-gradient-to-br from-indigo-500/15 via-violet-500/10 to-transparent rounded-3xl blur-xl opacity-70 group-hover:opacity-100 transition duration-700" />
 
               <div className="relative glass-panel rounded-3xl p-7 sm:p-9 shadow-2xl space-y-6">
                 {/* Brand Logo & Title */}
                 <div className="text-left space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black flex items-center justify-center font-extrabold font-mono text-xl shadow-lg shadow-emerald-500/25">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white flex items-center justify-center font-extrabold font-mono text-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/20">
                     P
                   </div>
                   <div>
@@ -202,13 +202,13 @@ const MainApp: React.FC = () => {
                   </div>
 
                   {/* Prominent High-Visibility Access Notice Callout */}
-                  <div className="p-3 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/25 text-xs flex items-center gap-3 text-zinc-200 shadow-xs">
-                    <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <div className="p-3 rounded-2xl bg-indigo-500/[0.08] border border-indigo-500/25 text-xs flex items-center gap-3 text-zinc-200 shadow-xs">
+                    <Mail className="w-4 h-4 text-indigo-400 shrink-0" />
                     <div className="leading-snug">
                       <span className="text-zinc-300">If you don't have access to it, mail </span>
                       <a
                         href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
-                        className="text-emerald-400 font-extrabold hover:underline inline-flex items-center gap-0.5"
+                        className="text-indigo-400 font-extrabold hover:underline inline-flex items-center gap-0.5"
                       >
                         mmgajjar07@gmail.com
                       </a>
@@ -281,7 +281,7 @@ const MainApp: React.FC = () => {
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2 font-mono">
-                        <span className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                        <span className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                         Verifying credentials...
                       </span>
                     ) : (
@@ -300,9 +300,9 @@ const MainApp: React.FC = () => {
                   </p>
                   <a
                     href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition group"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition group"
                   >
-                    <Mail className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition" />
+                    <Mail className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition" />
                     <span>Mail mmgajjar07@gmail.com</span>
                   </a>
                 </div>
@@ -310,7 +310,7 @@ const MainApp: React.FC = () => {
                 {/* Card Footer Security Assurance */}
                 <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-zinc-500">
                   <div className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-emerald-500/70" />
+                    <Shield className="w-3.5 h-3.5 text-indigo-400/80" />
                     <span>Protected Session</span>
                   </div>
                   <span className="font-mono text-zinc-600">v2.4 · ACID Live</span>
@@ -324,7 +324,7 @@ const MainApp: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-emerald-500/30 selection:text-white">
+    <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-indigo-500/30 selection:text-white">
       <Header
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activeView={activeView}

@@ -51,16 +51,16 @@ export const CustomCursor: React.FC = () => {
             ringRef.current.style.height = '36px';
             ringRef.current.style.marginLeft = '-18px';
             ringRef.current.style.marginTop = '-18px';
-            ringRef.current.style.borderColor = 'rgba(52, 211, 153, 0.85)';
-            ringRef.current.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
-            ringRef.current.style.boxShadow = '0 0 16px rgba(52, 211, 153, 0.3)';
+            ringRef.current.style.borderColor = 'rgba(99, 102, 241, 0.85)';
+            ringRef.current.style.backgroundColor = 'rgba(99, 102, 241, 0.12)';
+            ringRef.current.style.boxShadow = '0 0 16px rgba(99, 102, 241, 0.3)';
           } else {
             ringRef.current.style.width = '24px';
             ringRef.current.style.height = '24px';
             ringRef.current.style.marginLeft = '-12px';
             ringRef.current.style.marginTop = '-12px';
-            ringRef.current.style.borderColor = 'rgba(52, 211, 153, 0.45)';
-            ringRef.current.style.backgroundColor = 'rgba(16, 185, 129, 0.04)';
+            ringRef.current.style.borderColor = 'rgba(99, 102, 241, 0.45)';
+            ringRef.current.style.backgroundColor = 'rgba(99, 102, 241, 0.04)';
             ringRef.current.style.boxShadow = 'none';
           }
         }
@@ -117,7 +117,7 @@ export const CustomCursor: React.FC = () => {
       <div
         ref={dotRef}
         style={{ opacity: 0, willChange: 'transform' }}
-        className="pointer-events-none fixed top-0 left-0 -ml-1 -mt-1 w-2 h-2 rounded-full bg-emerald-400 z-[9998] shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-opacity duration-150"
+        className="pointer-events-none fixed top-0 left-0 -ml-1 -mt-1 w-2 h-2 rounded-full bg-indigo-400 z-[9998] shadow-[0_0_8px_rgba(99,102,241,0.8)] transition-opacity duration-150"
       />
 
       {/* Fluid Follower Ring */}
@@ -130,8 +130,8 @@ export const CustomCursor: React.FC = () => {
           height: '24px',
           marginLeft: '-12px',
           marginTop: '-12px',
-          borderColor: 'rgba(52, 211, 153, 0.45)',
-          backgroundColor: 'rgba(16, 185, 129, 0.04)',
+          borderColor: 'rgba(99, 102, 241, 0.45)',
+          backgroundColor: 'rgba(99, 102, 241, 0.04)',
         }}
         className="pointer-events-none fixed top-0 left-0 rounded-full border z-[9997] transition-[width,height,margin,border-color,background-color,box-shadow,opacity] duration-200 ease-out"
       />

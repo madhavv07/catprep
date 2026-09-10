@@ -297,7 +297,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
               onClick={() => switchRoleDemo(isAdmin ? 'student' : 'admin')}
               className="btn-glass px-4 py-2 text-zinc-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
             >
-              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <Shield className="w-3.5 h-3.5 text-indigo-400" />
               <span>{isAdmin ? 'Preview as Student' : 'Return to Admin Mode'}</span>
             </button>
           ) : (
@@ -375,7 +375,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
           <div>
             <div className="flex items-center gap-2">
-              <ListTodo className="w-5 h-5 text-emerald-400" />
+              <ListTodo className="w-5 h-5 text-indigo-400" />
               <h3 className="font-bold text-white tracking-tight text-lg">
                 My Personal Tasks & Study Planner
               </h3>

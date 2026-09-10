@@ -109,15 +109,15 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             onClick={() => setActiveView('dashboard')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-zinc-950 flex items-center justify-center font-bold text-base shadow-[0_0_18px_rgba(16,185,129,0.3)] ring-1 ring-white/20 transition group-hover:scale-105">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-base shadow-[0_0_18px_rgba(99,102,241,0.35)] ring-1 ring-white/20 transition group-hover:scale-105">
               P
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-white text-sm tracking-tight group-hover:text-emerald-300 transition">
+                <span className="font-semibold text-white text-sm tracking-tight group-hover:text-indigo-300 transition">
                   PrepDesk
                 </span>
-                <span className="hidden sm:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="hidden sm:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                   CAT 2027
                 </span>
               </div>
@@ -137,12 +137,12 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             onClick={() => setActiveView('calendar')}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
               activeView === 'calendar' || activeView === 'schedule'
-                ? 'bg-white/[0.1] text-white border border-white/[0.18] shadow-xs'
+                ? 'bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 shadow-xs'
                 : 'btn-glass text-zinc-300 hover:text-white'
             }`}
             title="Open Master Schedule & Calendar"
           >
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
             <span className="hidden sm:inline">Timetable</span>
           </button>
 
@@ -151,12 +151,12 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             onClick={() => setActiveView('feed')}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
               activeView === 'feed'
-                ? 'bg-white/[0.1] text-white border border-white/[0.18] shadow-xs'
+                ? 'bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 shadow-xs'
                 : 'btn-glass text-zinc-300 hover:text-white'
             }`}
             title="Community Inquiries Feed"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
             <span className="hidden sm:inline">Feed</span>
           </button>
 
@@ -169,7 +169,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-zinc-950 animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-400 ring-2 ring-zinc-950 animate-pulse" />
               )}
             </button>
 
@@ -182,7 +182,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                       Notifications
                     </span>
                     {unreadCount > 0 && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
                         {unreadCount} new
                       </span>
                     )}
@@ -190,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition cursor-pointer"
+                      className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
                     >
                       Mark all read
                     </button>
@@ -220,7 +220,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                               ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                               : notif.type === 'TASK_OVERDUE'
                               ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                           }`}
                         >
                           <Clock className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center gap-2 p-1.5 pl-2.5 rounded-xl btn-glass cursor-pointer"
             >
-              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xs font-bold">
+              <div className="w-6 h-6 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center text-xs font-bold">
                 {user?.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
               </div>
               <span className="text-xs font-medium text-zinc-200 hidden md:inline max-w-[100px] truncate">
@@ -284,7 +284,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                   <p className="text-[11px] text-zinc-400 font-mono truncate">
                     {user?.studentId || user?.email}
                   </p>
-                  <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                     {isAdmin ? 'Faculty Administrator' : 'Batch B-CAT2701'}
                   </span>
                 </div>
@@ -307,9 +307,9 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
                         setActiveView('admin-students');
                         setProfileOpen(false);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition cursor-pointer"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition cursor-pointer"
                     >
-                      <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                      <Shield className="w-3.5 h-3.5 text-indigo-400" />
                       <span>Admin Management</span>
                     </button>
                   )}

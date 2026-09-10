@@ -85,7 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 uppercase tracking-wider">
               Batch B-CAT2701
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-mono text-zinc-400 bg-white/[0.04] border border-white/[0.08]">
@@ -106,7 +106,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
             onClick={() => setActiveView('calendar')}
             className="px-3.5 py-2 rounded-xl text-xs font-medium btn-glass text-zinc-200 hover:text-white flex items-center gap-1.5 cursor-pointer"
           >
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+            <Calendar className="w-3.5 h-3.5 text-indigo-400" />
             <span>Master Timetable</span>
           </button>
 

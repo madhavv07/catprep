@@ -55,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     icon: React.ReactNode,
     label: string,
     badge?: React.ReactNode,
-    accentColor: string = 'text-emerald-400'
+    accentColor: string = 'text-indigo-400'
   ) => {
     const isActive = Array.isArray(viewKey) ? viewKey.includes(activeView) : activeView === viewKey;
     const targetView = Array.isArray(viewKey) ? viewKey[0] : viewKey;
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={() => handleNav(targetView)}
         className={`w-full group flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
           isActive
-            ? 'bg-white/[0.09] text-white border border-white/[0.12] shadow-xs'
+            ? 'bg-indigo-500/15 text-white border border-indigo-500/30 shadow-xs shadow-indigo-500/5'
             : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent'
         }`}
       >
@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 'feed',
                 <MessageSquare className="w-4 h-4" />,
                 'Community Feed',
-                <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-indigo-400 ring-2 ring-indigo-400/30 animate-pulse" />
               )}
             </nav>
           </div>
@@ -291,7 +291,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3.5 border-t border-white/[0.08] text-xs text-zinc-400">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[11px] text-zinc-300">Batch B-CAT2701</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-400/20" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 ring-2 ring-indigo-400/20" />
           </div>
           <span className="text-[10px] text-zinc-500 block mt-0.5">Target: CAT 2027</span>
         </div>
