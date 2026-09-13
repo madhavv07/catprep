@@ -581,6 +581,15 @@ app.delete('/api/db/feed/:postId/comments/:commentId', async (req, res) => {
   }
 });
 
+// Timetable & Lecture Schedule Activities
+app.get('/api/db/schedule', (req, res) => {
+  const snapshot = getDatabaseSnapshot();
+  const list = Object.values(snapshot.scheduleActivities || {}).sort((a: any, b: any) =>
+    (a.date || '') > (b.date || '') ? 1 : -1
+  );
+  return res.json(list);
+});
+
 // Export complete database snapshot
 app.get('/api/db/export', (req, res) => {
   const snapshot = getDatabaseSnapshot();
