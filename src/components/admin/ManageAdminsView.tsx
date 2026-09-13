@@ -184,7 +184,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
 
   const handleCopyCredentials = (s: UserProfile) => {
     const pass = s.currentPassword || 'Contact Admin';
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catprep.onrender.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catdesk.online';
     const text = [
       `🎓 PREPDESK CAT 2027 — Official Scholar Credentials`,
       `----------------------------------------------------`,
