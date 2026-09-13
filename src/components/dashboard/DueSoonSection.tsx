@@ -18,15 +18,18 @@ import {
 } from 'lucide-react';
 import { ClassTask, ActiveView, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 import { getDueSoonInfo, formatTime12h, formatDatePretty } from '../../utils/dateUtils';
 import { TaskDetailModal } from '../tasks/TaskDetailModal';
 
 interface DueSoonSectionProps {
   setActiveView: (view: ActiveView) => void;
+  onEditTask?: (task: ClassTask) => void;
 }
 
-export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView }) => {
+export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView, onEditTask }) => {
   const { getDueIn24HoursTasks, toggleTaskCompletion, taskProgress } = useTasks();
+  const { isAdmin } = useAuth();
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState<ClassTask | null>(null);
 
@@ -227,6 +230,8 @@ export const DueSoonSection: React.FC<DueSoonSectionProps> = ({ setActiveView })
           task={selectedTaskForModal}
           isOpen={true}
           onClose={() => setSelectedTaskForModal(null)}
+          onEdit={onEditTask}
+          isAdmin={isAdmin}
         />
       )}
     </section>

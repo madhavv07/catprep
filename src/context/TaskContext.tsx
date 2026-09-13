@@ -5,6 +5,7 @@ import {
   onSnapshot,
   setDoc,
   deleteDoc,
+  deleteField,
   query,
   where,
 } from 'firebase/firestore';
@@ -497,9 +498,23 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Admin action: Update Task
   const updateTask = async (taskId: string, updates: Partial<ClassTask>): Promise<void> => {
     const now = new Date().toISOString();
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, ...updates, updatedAt: now } : t))
-    );
+    const shouldDeletePdf = updates.pdfAttachment === null || (updates as any).deletePdfAttachment === true;
+
+    setTasks((prev) => {
+      const nextTasks = prev.map((t) => {
+        if (t.id === taskId) {
+          const updated: ClassTask = { ...t, ...updates, updatedAt: now };
+          if (shouldDeletePdf) {
+            delete updated.pdfAttachment;
+          }
+          return updated;
+        }
+        return t;
+      });
+      localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(nextTasks));
+      localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: nextTasks, updatedAt: now }));
+      return nextTasks;
+    });
 
     // 1. Dynamic DB persistence
     try {
@@ -512,7 +527,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 2. Firestore persistence
     try {
-      await setDoc(doc(db, 'tasks', taskId), { ...updates, updatedAt: now }, { merge: true });
+      const firestoreUpdates: any = { ...updates, updatedAt: now };
+      if (shouldDeletePdf) {
+        firestoreUpdates.pdfAttachment = deleteField();
+        delete firestoreUpdates.deletePdfAttachment;
+      }
+      await setDoc(doc(db, 'tasks', taskId), firestoreUpdates, { merge: true });
     } catch (e) {}
   };
 

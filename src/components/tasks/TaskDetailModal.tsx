@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ClassTask, Subject } from '../../types';
 import { useTasks } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 import { getDeadlineInfo, formatDatePretty, formatTime12h } from '../../utils/dateUtils';
 import { parseAllTaskLinks, ParsedLink } from '../../utils/linkUtils';
 import { PdfViewerModal } from '../common/PdfViewerModal';
@@ -42,6 +43,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isAdmin = false,
 }) => {
   const { taskProgress, toggleTaskCompletion, deleteTask } = useTasks();
+  const { isAdmin: authIsAdmin } = useAuth();
+  const canAdmin = isAdmin || authIsAdmin;
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [activePdfModal, setActivePdfModal] = useState<{ url: string; title: string; size?: string } | null>(null);
 
@@ -395,7 +398,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </button>
 
             <div className="flex items-center gap-2">
-              {isAdmin && (
+              {canAdmin && (
                 <button
                   onClick={async () => {
                     if (window.confirm(`Are you sure you want to permanently delete "${task.title}"? This cannot be undone.`)) {
@@ -411,13 +414,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 </button>
               )}
 
-              {isAdmin && onEdit && (
+              {canAdmin && onEdit && (
                 <button
                   onClick={() => {
                     onClose();
                     onEdit(task);
                   }}
-                  className="btn-glass px-3 py-2 rounded-xl text-xs font-medium text-zinc-200 hover:text-white cursor-pointer"
+                  className="btn-glass px-3 py-2 rounded-xl text-xs font-medium text-amber-300 hover:text-amber-200 border border-amber-500/20 hover:bg-amber-500/10 cursor-pointer"
                 >
                   Edit Task
                 </button>

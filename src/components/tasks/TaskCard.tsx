@@ -208,6 +208,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <Maximize2 className="w-3.5 h-3.5" />
             </button>
 
+            {isAdmin && onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
+                }}
+                className="p-1.5 text-zinc-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-colors shrink-0 cursor-pointer"
+                title={`Edit "${task.title}"`}
+                aria-label={`Edit "${task.title}"`}
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            )}
+
             {isAdmin && (
               <button
                 type="button"

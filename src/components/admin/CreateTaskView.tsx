@@ -89,11 +89,29 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
       setDeadlineTime(taskToEdit.deadlineTime || '23:59');
       setSubmissionDate(taskToEdit.submissionDate || '');
       setSubmissionLecture(taskToEdit.submissionLecture || '');
-      setSubmissionMethod(taskToEdit.submissionMethod);
+      setSubmissionMethod(taskToEdit.submissionMethod || 'Submit in Lecture / Physical Notebook');
       setAdditionalNotes(taskToEdit.additionalNotes || '');
-      setPriority(taskToEdit.priority);
-      setStatus(taskToEdit.status);
-      setPdfAttachment(taskToEdit.pdfAttachment);
+      setPriority(taskToEdit.priority || 'Normal');
+      setStatus(taskToEdit.status || 'published');
+      setPdfAttachment(taskToEdit.pdfAttachment || undefined);
+    } else {
+      setSubject('VARC');
+      setTopic('');
+      setSubtopic('');
+      setTitle('');
+      setShortDescription('');
+      setInstructions('');
+      setGivenInLecture('');
+      setAssignedDate(getTodayDateString());
+      setDeadlineDate(getTodayDateString());
+      setDeadlineTime('23:59');
+      setSubmissionDate('');
+      setSubmissionLecture('');
+      setSubmissionMethod('Submit in Lecture / Physical Notebook');
+      setAdditionalNotes('');
+      setPriority('Normal');
+      setStatus('published');
+      setPdfAttachment(undefined);
     }
   }, [taskToEdit]);
 
@@ -230,14 +248,15 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           assignedDate,
           deadlineDate,
           deadlineTime,
-          submissionDate: submissionDate || undefined,
-          submissionLecture: submissionLecture || undefined,
+          submissionDate: submissionDate.trim(),
+          submissionLecture: submissionLecture.trim(),
           submissionMethod: submissionMethod.trim(),
-          additionalNotes: additionalNotes.trim() || undefined,
+          additionalNotes: additionalNotes.trim(),
           priority,
           status: finalStatus,
-          pdfAttachment: pdfAttachment || undefined,
-        });
+          pdfAttachment: pdfAttachment || null,
+          deletePdfAttachment: !pdfAttachment,
+        } as any);
       } else {
         await createTask({
           section: catSection,
@@ -251,8 +270,8 @@ export const CreateTaskView: React.FC<CreateTaskViewProps> = ({
           assignedDate,
           deadlineDate,
           deadlineTime,
-          submissionDate: submissionDate || undefined,
-          submissionLecture: submissionLecture || undefined,
+          submissionDate: submissionDate.trim() || undefined,
+          submissionLecture: submissionLecture.trim() || undefined,
           submissionMethod: submissionMethod.trim(),
           additionalNotes: additionalNotes.trim() || undefined,
           priority,

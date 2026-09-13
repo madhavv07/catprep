@@ -26,9 +26,10 @@ import { TaskDetailModal } from '../tasks/TaskDetailModal';
 
 interface StudyCalendarProps {
   setActiveView: (view: ActiveView) => void;
+  onEditTask?: (task: ClassTask) => void;
 }
 
-export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) => {
+export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onEditTask }) => {
   const { scheduleActivities, tasks, personalTasks, taskProgress, toggleTaskCompletion, deleteTask } = useTasks();
   const { isAdmin } = useAuth();
 
@@ -711,6 +712,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView }) =
           task={selectedTaskForModal}
           isOpen={true}
           onClose={() => setSelectedTaskForModal(null)}
+          onEdit={onEditTask}
           isAdmin={isAdmin}
         />
       )}

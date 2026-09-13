@@ -341,9 +341,11 @@ const MainApp: React.FC = () => {
 
         <main className="flex-1 min-w-0">
           <div key={activeView} className="animate-route-entrance">
-            {activeView === 'dashboard' && <Dashboard setActiveView={setActiveView} />}
+            {activeView === 'dashboard' && (
+              <Dashboard setActiveView={setActiveView} onEditTask={handleEditTask} />
+            )}
             {(activeView === 'calendar' || activeView === 'schedule') && (
-              <StudyCalendar setActiveView={setActiveView} />
+              <StudyCalendar setActiveView={setActiveView} onEditTask={handleEditTask} />
             )}
             {activeView === 'feed' && <FeedView setActiveView={setActiveView} />}
             {activeView === 'varc-tasks' && <SubjectTasksView subject="VARC" setActiveView={setActiveView} onEditTask={handleEditTask} />}

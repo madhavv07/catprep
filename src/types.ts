@@ -58,7 +58,7 @@ export interface ClassTask {
   linkedTestId?: string;
   scheduleActivityId?: string;
   attachmentUrl?: string;
-  pdfAttachment?: PdfAttachment;
+  pdfAttachment?: PdfAttachment | null;
   createdBy: string;
   createdByName?: string;
   createdAt: string;

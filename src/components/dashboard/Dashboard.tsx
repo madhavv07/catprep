@@ -20,10 +20,11 @@ import { useTasks } from '../../context/TaskContext';
 import { useVocab } from '../../context/VocabContext';
 import { TaskCard } from '../tasks/TaskCard';
 import { DueSoonSection } from './DueSoonSection';
-import { ActiveView, Subject } from '../../types';
+import { ActiveView, Subject, ClassTask } from '../../types';
 
 interface DashboardProps {
   setActiveView: (view: ActiveView) => void;
+  onEditTask?: (task: ClassTask) => void;
 }
 
 const AnimatedCounter: React.FC<{ value: number; durationMs?: number }> = ({ value, durationMs = 600 }) => {
@@ -57,8 +58,8 @@ const AnimatedCounter: React.FC<{ value: number; durationMs?: number }> = ({ val
   return <span>{displayValue}</span>;
 };
 
-export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
-  const { user } = useAuth();
+export const Dashboard: React.FC<DashboardProps> = ({ setActiveView, onEditTask }) => {
+  const { user, isAdmin } = useAuth();
   const { tasks, stats: taskStats } = useTasks();
   const { stats: vocabStats } = useVocab();
   const [selectedSubject, setSelectedSubject] = useState<Subject | 'ALL'>('ALL');
@@ -281,7 +282,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
 
       {/* 4. Dedicated Due Soon Section with Stagger Delay */}
       <div className="animate-route-entrance stagger-2">
-        <DueSoonSection setActiveView={setActiveView} />
+        <DueSoonSection setActiveView={setActiveView} onEditTask={onEditTask} />
       </div>
 
       {/* 5. Two-Column Layout: Class Tasks & VARC Personal Learning with Stagger Delay */}
@@ -326,7 +327,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView }) => {
           ) : (
             <div className="space-y-3">
               {filteredTasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onEdit={onEditTask}
+                  showAdminControls={isAdmin}
+                />
               ))}
             </div>
           )}

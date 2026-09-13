@@ -253,7 +253,16 @@ app.put('/api/db/tasks/:id', async (req, res) => {
       if (!state.tasks[taskId]) {
         throw new Error(`Task ${taskId} not found`);
       }
+      const shouldDeletePdf = updates.pdfAttachment === null || updates.deletePdfAttachment === true;
+      if (shouldDeletePdf) {
+        delete state.tasks[taskId].pdfAttachment;
+        delete updates.pdfAttachment;
+        delete updates.deletePdfAttachment;
+      }
       state.tasks[taskId] = { ...state.tasks[taskId], ...updates, updatedAt: now };
+      if (shouldDeletePdf) {
+        delete state.tasks[taskId].pdfAttachment;
+      }
       return {
         state,
         result: state.tasks[taskId],
