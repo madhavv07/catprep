@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
-  const { user, loading, signInWithCredentials } = useAuth();
+  const { user, loading, signInWithCredentials, isAdmin } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
@@ -55,6 +55,14 @@ const MainApp: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // ✅ CRITICAL FIX: Reset view to dashboard whenever user identity changes
+  // This prevents admin views from persisting when a student logs in after admin
+  useEffect(() => {
+    setActiveView('dashboard');
+    setTaskToEdit(null);
+    setCmdPaletteOpen(false);
+  }, [user?.uid]);
 
   // Cmd+K / Ctrl+K global shortcut for Command Palette
   useEffect(() => {
@@ -384,20 +392,20 @@ const MainApp: React.FC = () => {
               <VocabTest setActiveView={setActiveView} />
             )}
             {activeView === 'profile' && <ProfileView setActiveView={setActiveView} />}
-            {activeView === 'admin-create' && (
+            {activeView === 'admin-create' && isAdmin && (
               <CreateTaskView
                 setActiveView={setActiveView}
                 taskToEdit={taskToEdit}
                 onDone={handleCreateDone}
               />
             )}
-            {activeView === 'admin-manage' && (
+            {activeView === 'admin-manage' && isAdmin && (
               <ManageTasksView setActiveView={setActiveView} onEditTask={handleEditTask} />
             )}
-            {(activeView === 'admin-users' || activeView === 'admin-students') && (
+            {(activeView === 'admin-users' || activeView === 'admin-students') && isAdmin && (
               <ManageAdminsView setActiveView={setActiveView} />
             )}
-            {activeView === 'admin-stats' && <TaskStatisticsView setActiveView={setActiveView} />}
+            {activeView === 'admin-stats' && isAdmin && <TaskStatisticsView setActiveView={setActiveView} />}
           </div>
         </main>
       </div>
