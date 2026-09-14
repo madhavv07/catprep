@@ -125,6 +125,7 @@ export const TestRunnerModal: React.FC<TestRunnerModalProps> = ({ test, onClose,
       const response = await fetch('/api/tests/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           testId: test.id,
           studentUid: user?.uid,

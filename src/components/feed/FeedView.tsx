@@ -83,7 +83,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
   // Database fetch helper
   const fetchFeedFromDb = async () => {
     try {
-      const res = await fetch('/api/db/feed');
+      const res = await fetch('/api/db/feed', { credentials: 'include' });
       if (res.ok) {
         const list = await res.json();
         if (Array.isArray(list)) {
@@ -158,6 +158,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
           const res = await fetch('/api/db/upload-pdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               fileName: file.name,
               data: base64Content,
@@ -210,6 +211,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       await fetch(`/api/db/feed/${postId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ isPinned: newPinned }),
       });
     } catch (e) {}
@@ -260,6 +262,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       await fetch('/api/db/feed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(newPost),
       });
     } catch (err) {}
@@ -312,6 +315,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
       const res = await fetch(`/api/db/feed/${postId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           authorId: currentUserId,
           authorName: currentUserName,
@@ -333,7 +337,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
 
     setPosts((prev) => prev.filter((p) => p.id !== postId));
     try {
-      await fetch(`/api/db/feed/${postId}`, { method: 'DELETE' });
+      await fetch(`/api/db/feed/${postId}`, { method: 'DELETE', credentials: 'include' });
     } catch (err) {}
     try {
       await deleteDoc(doc(db, 'feed_posts', postId));
@@ -352,7 +356,7 @@ export const FeedView: React.FC<FeedViewProps> = () => {
     );
 
     try {
-      await fetch(`/api/db/feed/${postId}/comments/${commentId}`, { method: 'DELETE' });
+      await fetch(`/api/db/feed/${postId}/comments/${commentId}`, { method: 'DELETE', credentials: 'include' });
     } catch (err) {}
   };
 

@@ -239,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           } else if (parsed.type === 'STUDENT_PASSWORD_RESET' && parsed.payload) {
             setStudents((prev) => {
-              const updated = prev.map((s) => (s.uid === parsed.payload.uid ? { ...s, currentPassword: parsed.payload.currentPassword } : s));
+              const updated = prev.map((s) => (s.uid === parsed.payload.uid ? { ...s, updatedAt: new Date().toISOString() } : s));
               localStorage.setItem(STUDENTS_VAULT_KEY, JSON.stringify(updated));
               return updated;
             });
@@ -655,7 +655,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await res.json();
       if (data.success && data.student) {
         setStudents((prev) =>
-          prev.map((s) => (s.uid === uid ? { ...s, currentPassword: cleanPass } : s))
+          prev.map((s) => (s.uid === uid ? { ...s, updatedAt: new Date().toISOString() } : s))
         );
         return { success: true };
       }

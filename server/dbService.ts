@@ -414,7 +414,7 @@ export async function deleteStudentFromDb(uid: string): Promise<boolean> {
 
     // Cascade clean assignments
     for (const assignKey of Object.keys(state.taskAssignments)) {
-      if (assignKey.endsWith(`_${uid}`)) {
+      if (assignKey.endsWith(`_${uid}`) || state.taskAssignments[assignKey]?.studentUid === uid) {
         delete state.taskAssignments[assignKey];
       }
     }

@@ -173,7 +173,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Database sync helper functions with Dual-Resilience Auto-Rehydration
   const fetchTasksFromDb = async () => {
     try {
-      const res = await fetch('/api/db/tasks');
+      const res = await fetch('/api/db/tasks', { credentials: 'include' });
       if (res.ok) {
         const list = await res.json();
         if (Array.isArray(list)) {
@@ -187,11 +187,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch (e) {}
           }
 
-          if (list.length === 0 && cachedTasks.length > 0) {
+          if (list.length === 0 && cachedTasks.length > 0 && user?.role === 'admin') {
             console.log(`[AutoRehydration] Server restarted empty. Rehydrating ${cachedTasks.length} tasks from shadow vault...`);
             await fetch('/api/db/restore', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
               body: JSON.stringify({ tasks: cachedTasks }),
             });
             setTasks(cachedTasks);
@@ -209,7 +210,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchPersonalTasksFromDb = async (uid: string) => {
     try {
-      const res = await fetch(`/api/db/personal-tasks?studentUid=${encodeURIComponent(uid)}`);
+      const res = await fetch(`/api/db/personal-tasks?studentUid=${encodeURIComponent(uid)}`, { credentials: 'include' });
       if (res.ok) {
         const list = await res.json();
         if (Array.isArray(list)) {
@@ -222,7 +223,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchAssignmentsFromDb = async (uid: string) => {
     try {
-      const res = await fetch(`/api/db/assignments?studentUid=${encodeURIComponent(uid)}`);
+      const res = await fetch(`/api/db/assignments?studentUid=${encodeURIComponent(uid)}`, { credentials: 'include' });
       if (res.ok) {
         const assignmentsMap = await res.json();
         const progressMap: Record<string, boolean> = {};
@@ -386,6 +387,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetch('/api/db/assignments/toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
             taskId,
             studentUid: user.uid,
@@ -459,6 +461,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch('/api/db/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(newTask),
       });
     } catch (e) {}
@@ -469,27 +472,21 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create assigned notifications if published
       if (newTask.status === 'published') {
-        const notifId = `notif_assigned_${Date.now()}`;
-        const recipients = newTask.assignedStudentUids && newTask.assignedStudentUids.length > 0
-          ? newTask.assignedStudentUids
-          : ['all'];
-
-        for (const recipientUid of recipients) {
-          await setDoc(doc(db, 'notifications', `${notifId}_${recipientUid}`), {
-            id: `${notifId}_${recipientUid}`,
-            recipientUid: recipientUid === 'all' ? (user?.uid || 'all') : recipientUid,
-            title: `New ${newTask.section} Task Assigned`,
-            message: `${newTask.title} (${newTask.topic}) — Due ${newTask.deadlineDate}`,
-            type: 'TASK_ASSIGNED',
-            entityType: 'task',
-            entityId: id,
-            read: false,
-            createdAt: now,
-          });
-        }
+        const notifId = `notif_${Date.now()}`;
+        await setDoc(doc(db, 'notifications', notifId), {
+          id: notifId,
+          recipientUid: 'ALL',
+          title: `New Task: ${newTask.title}`,
+          message: `A new ${newTask.subject || newTask.section} task has been published. Due: ${newTask.deadlineDate || 'TBD'}`,
+          type: 'TASK_ASSIGNED',
+          entityType: 'task',
+          entityId: id,
+          read: false,
+          createdAt: now,
+        });
       }
     } catch (e) {
-      console.warn('Error writing task to Firestore:', e);
+      console.warn('Could not sync created task to Firestore:', e);
     }
 
     return id;
@@ -503,7 +500,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setTasks((prev) => {
       const nextTasks = prev.map((t) => {
         if (t.id === taskId) {
-          const updated: ClassTask = { ...t, ...updates, updatedAt: now };
+          const updated = { ...t, ...updates, updatedAt: now };
           if (shouldDeletePdf) {
             delete updated.pdfAttachment;
           }
@@ -521,6 +518,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch(`/api/db/tasks/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(updates),
       });
     } catch (e) {}
@@ -545,7 +543,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return nextTasks;
     });
     try {
-      await fetch(`/api/db/tasks/${taskId}`, { method: 'DELETE' });
+      await fetch(`/api/db/tasks/${taskId}`, { method: 'DELETE', credentials: 'include' });
     } catch (e) {
       console.warn('Backend task delete sync note:', e);
     }
@@ -562,7 +560,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify([]));
     localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: [], updatedAt: new Date().toISOString() }));
     try {
-      await fetch('/api/db/tasks/all/bulk', { method: 'DELETE' });
+      await fetch('/api/db/tasks/all/bulk', { method: 'DELETE', credentials: 'include' });
     } catch (e) {}
   };
 
@@ -634,6 +632,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetch('/api/db/personal-tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ ...newTask, studentUid: user.uid }),
         });
       } catch (e) {}
@@ -661,6 +660,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await fetch(`/api/db/personal-tasks/${taskId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ ...updates, studentUid: user.uid }),
         });
       } catch (e) {}
@@ -681,6 +681,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await fetch(`/api/db/personal-tasks/${taskId}?studentUid=${encodeURIComponent(user.uid)}`, {
           method: 'DELETE',
+          credentials: 'include',
         });
       } catch (e) {}
 

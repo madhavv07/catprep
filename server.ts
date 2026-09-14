@@ -33,6 +33,7 @@ import {
   requireStudent,
   createSession,
   destroySession,
+  destroyUserSessions,
   SESSION_COOKIE_NAME,
   getCookieOptions,
   AuthRequest,
@@ -157,16 +158,11 @@ async function withTimeout<T>(promise: Promise<T>, ms: number = 3500): Promise<T
   ]);
 }
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', time: new Date().toISOString() });
-});
-
 // -------------------------------------------------------------
 // Real-Time Dynamic Database & SSE Engine (ACID Compliant)
 // -------------------------------------------------------------
 
-// SSE Real-Time Stream
+// SSE Real-Time Stream with keep-alive heartbeat
 app.get('/api/realtime/stream', (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -176,6 +172,19 @@ app.get('/api/realtime/stream', (req, res) => {
   });
   res.write('event: connected\ndata: {"status":"connected"}\n\n');
   registerSseClient(res);
+
+  // Keep-alive heartbeat ping every 25 seconds to prevent proxy dropouts (Render, Cloudflare, Nginx)
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': heartbeat\n\n');
+    } catch (e) {
+      clearInterval(heartbeat);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+  });
 });
 
 // -------------------------------------------------------------
@@ -318,7 +327,8 @@ app.post('/api/auth/login/initiate', authLimiter, async (req, res) => {
       user,
     });
 
-    const recipientEmail = (user.email && !user.email.endsWith('@prepdesk.edu')) ? user.email : 'madhavgajjar7@gmail.com';
+    const fallbackEmail = process.env.FALLBACK_OTP_EMAIL || process.env.ADMIN_EMAIL || 'madhavgajjar7@gmail.com';
+    const recipientEmail = (user.email && !user.email.endsWith('@prepdesk.edu')) ? user.email : fallbackEmail;
 
     // Dispatch OTP email via SMTP / Resend
     const sendResult = await sendOtpEmail({
@@ -442,7 +452,8 @@ app.post('/api/auth/forgot-password/request-otp', authLimiter, async (req, res) 
     displayName: matchedUser.displayName,
   });
 
-  const recipientEmail = (matchedUser.email && !matchedUser.email.endsWith('@prepdesk.edu')) ? matchedUser.email : 'madhavgajjar7@gmail.com';
+  const fallbackEmail = process.env.FALLBACK_OTP_EMAIL || process.env.ADMIN_EMAIL || 'madhavgajjar7@gmail.com';
+  const recipientEmail = (matchedUser.email && !matchedUser.email.endsWith('@prepdesk.edu')) ? matchedUser.email : fallbackEmail;
 
   const sendResult = await sendOtpEmail({
     to: recipientEmail,
@@ -514,6 +525,7 @@ app.post('/api/auth/forgot-password/verify-and-reset', authLimiter, async (req, 
   try {
     await resetStudentPasswordInDb(session.uid, newPassword.trim());
     RESET_OTP_SESSIONS.delete(resetToken);
+    destroyUserSessions(session.uid);
 
     return res.json({
       success: true,
@@ -570,6 +582,7 @@ app.delete('/api/db/students/:uid', requireAdmin, async (req, res) => {
   }
   try {
     await deleteStudentFromDb(uid);
+    destroyUserSessions(uid);
     return res.json({ success: true, uid });
   } catch (err: any) {
     return res.status(400).json({ success: false, error: err.message });
@@ -1063,8 +1076,8 @@ app.post('/api/db/restore', requireAdmin, async (req, res) => {
   }
 });
 
-// Secure PDF Upload (Admin Only, 15MB limit, Magic Bytes %PDF- Verified, Directory Traversal Protected)
-app.post('/api/db/upload-pdf', requireAdmin, async (req: AuthRequest, res) => {
+// Secure PDF Upload (Authenticated, 15MB limit, Magic Bytes %PDF- Verified, Directory Traversal Protected)
+app.post('/api/db/upload-pdf', requireAuth, async (req: AuthRequest, res) => {
   const filename = req.body.filename || req.body.fileName || 'document.pdf';
   const dataUrl = req.body.dataUrl || req.body.data || req.body.fileData;
   const sizeFormatted = req.body.sizeFormatted;

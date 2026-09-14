@@ -60,7 +60,6 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [copiedPassId, setCopiedPassId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // One-time credential display for newly enrolled students (passwords are bcrypt-hashed and never stored plaintext)
@@ -71,9 +70,6 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
     password: string;
   } | null>(null);
   const [copiedEnrollCreds, setCopiedEnrollCreds] = useState(false);
-
-  // Password visibility map (student uid -> boolean)
-  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
 
   // Reset password modal state
   const [resetModalStudent, setResetModalStudent] = useState<UserProfile | null>(null);
@@ -92,7 +88,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
     setIsExporting(true);
     setBackupStatus(null);
     try {
-      const res = await fetch('/api/db/export');
+      const res = await fetch('/api/db/export', { credentials: 'include' });
       if (!res.ok) throw new Error('Failed to export database snapshot');
       const data = await res.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -125,6 +121,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
         const res = await fetch('/api/db/restore', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(parsed),
         });
         if (!res.ok) throw new Error('Restore endpoint rejected snapshot');
@@ -166,6 +163,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       const res = await fetch('/api/db/restore', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ tasks, users }),
       });
 
@@ -177,20 +175,6 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
     } finally {
       setIsRestoring(false);
     }
-  };
-
-  const togglePasswordVisibility = (uid: string) => {
-    setRevealedPasswords((prev) => ({
-      ...prev,
-      [uid]: !prev[uid],
-    }));
-  };
-
-  const handleCopySinglePassword = (s: UserProfile) => {
-    const pass = s.currentPassword || 'Protected';
-    navigator.clipboard.writeText(pass);
-    setCopiedPassId(s.uid);
-    setTimeout(() => setCopiedPassId(null), 2500);
   };
 
   const handleCopyNewlyEnrolledCredentials = () => {
@@ -264,7 +248,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       const res = await resetStudentPassword(resetModalStudent.uid, cleanPass);
       if (res.success) {
         setResetSuccess(`Password updated successfully for ${resetModalStudent.displayName}!`);
-        setResetModalStudent((prev) => (prev ? { ...prev, currentPassword: cleanPass } : null));
+        setResetModalStudent((prev) => (prev ? { ...prev } : null));
       } else {
         setResetError(res.error || 'Failed to reset password.');
       }
@@ -610,8 +594,6 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
           ) : (
             <div className="space-y-3">
               {filteredStudents.map((s) => {
-                const isPasswordRevealed = !!revealedPasswords[s.uid];
-
                 return (
                   <div
                     key={s.uid}
