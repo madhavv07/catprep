@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchStudents = async () => {
       try {
-        const res = await fetch('/api/db/students');
+        const res = await fetch('/api/db/students', { credentials: 'include' });
         if (res.ok) {
           const list = await res.json();
           if (Array.isArray(list)) {
@@ -206,6 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               await fetch('/api/db/restore', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ users: cachedStudents }),
               });
               setStudents(cachedStudents);
@@ -294,11 +295,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Please enter both Student ID / Username and password.' };
     }
 
-    // 1. Primary: Authenticate with live dynamic database
+    // 1. Primary: Authenticate with server session database
     try {
       const dbRes = await fetch('/api/db/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ identifier: rawClean, password: cleanPass }),
       });
 
@@ -307,40 +309,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (dbData.success && dbData.user) {
           setUser(dbData.user);
           localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(dbData.user));
+          if (dbData.token) {
+            localStorage.setItem('prepdesk_session_token', dbData.token);
+          }
           try {
             await setDoc(doc(db, 'users', dbData.user.uid), dbData.user, { merge: true });
           } catch (e) {}
           return { success: true };
         }
-      } else if (dbRes.status === 401) {
-        return { success: false, error: 'Invalid Student ID / Username or Password.' };
+      } else if (dbRes.status === 401 || dbRes.status === 429) {
+        const errData = await dbRes.json().catch(() => ({ error: 'Invalid credentials.' }));
+        return { success: false, error: errData.error || 'Invalid credentials.' };
       }
     } catch (netErr) {
-      console.warn('Backend DB auth offline/failed, falling back to local verification:', netErr);
+      console.warn('Backend DB auth offline/failed, falling back to Firebase Auth if configured:', netErr);
     }
 
-    // 2. Direct Admin check for madhav / madhav07
-    if ((rawClean === 'madhav' || rawClean === 'admin' || rawClean === 'madhav@prepdesk.edu') && cleanPass === 'madhav07') {
-      const adminProfile: UserProfile = {
-        uid: 'admin_madhav',
-        studentId: 'MADHAV',
-        email: 'madhav@prepdesk.edu',
-        displayName: 'Madhav (Administrator)',
-        role: 'admin',
-        batchId: 'B-CAT2701',
-        mentor: 'Administrator',
-        createdAt: '2026-09-01T00:00:00.000Z',
-        lastLoginAt: new Date().toISOString(),
-      };
-      setUser(adminProfile);
-      localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(adminProfile));
-      try {
-        await setDoc(doc(db, 'users', 'admin_madhav'), adminProfile, { merge: true });
-      } catch (e) {}
-      return { success: true };
-    }
-
-    // 3. Attempt Firebase Auth if configured
+    // 2. Fallback: Firebase Auth if configured
     const authEmail = rawClean.includes('@') ? rawClean : studentIdToAuthEmail(rawClean);
 
     try {
@@ -353,7 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile = snap.data() as UserProfile;
         await updateDoc(userRef, { lastLoginAt: new Date().toISOString() });
       } else {
-        const isAdmin = authEmail.includes('admin') || authEmail.includes('madhav') || authEmail === 'madhavgajjar7@gmail.com';
+        const isAdmin = authEmail.includes('admin') || authEmail === 'madhavgajjar7@gmail.com';
         profile = {
           uid: cred.user.uid,
           studentId: rawClean.split('@')[0].toUpperCase(),
@@ -386,11 +371,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Sign Out
   const signOut = async () => {
     try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {}
+    try {
       await firebaseSignOut(auth);
     } catch (e) {}
     setUser(null);
     setFirebaseUser(null);
     localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+    localStorage.removeItem('prepdesk_session_token');
   };
 
   // 2-Step Login: Step 1 (Credentials check -> sends OTP for students)
@@ -415,6 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/login/initiate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ identifier: rawClean, password: cleanPass }),
       });
 
@@ -424,6 +414,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Direct login (Admin)
           setUser(data.user);
           localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(data.user));
+          if (data.token) {
+            localStorage.setItem('prepdesk_session_token', data.token);
+          }
           try {
             await setDoc(doc(db, 'users', data.user.uid), data.user, { merge: true });
           } catch (e) {}
@@ -454,13 +447,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/login/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionToken, otp }),
+        credentials: 'include',
+        body: JSON.stringify({ sessionToken, otp: otp.trim() }),
       });
 
       const data = await res.json();
       if (res.ok && data.success && data.user) {
         setUser(data.user);
         localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(data.user));
+        if (data.token) {
+          localStorage.setItem('prepdesk_session_token', data.token);
+        }
         try {
           await setDoc(doc(db, 'users', data.user.uid), data.user, { merge: true });
         } catch (e) {}
@@ -487,6 +484,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/forgot-password/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ identifier: identifier.trim() }),
       });
       const data = await res.json();
@@ -515,6 +513,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/auth/forgot-password/verify-and-reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ resetToken, otp: otp.trim(), newPassword }),
       });
       const data = await res.json();
@@ -542,7 +541,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const cleanId = payload.studentId.trim().toUpperCase();
     const cleanName = payload.displayName.trim();
-    const cleanPass = payload.password ? payload.password.trim() : 'CAT27#ChangeMe';
+    const cleanPass = payload.password ? payload.password.trim() : `CAT27#${Math.random().toString(36).slice(2, 7)}`;
     const cleanEmail = payload.email?.trim().toLowerCase();
 
     if (!cleanId || !cleanName) {
@@ -554,6 +553,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch('/api/db/students/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           studentId: cleanId,
           displayName: cleanName,
@@ -613,7 +613,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setStudents((prev) => prev.filter((s) => s.uid !== uid));
 
     try {
-      const res = await fetch(`/api/db/students/${uid}`, { method: 'DELETE' });
+      const res = await fetch(`/api/db/students/${uid}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
       const data = await res.json();
       if (!data.success) {
         return { success: false, error: data.error };
@@ -646,6 +649,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch(`/api/db/students/${uid}/password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ newPassword: cleanPass }),
       });
       const data = await res.json();

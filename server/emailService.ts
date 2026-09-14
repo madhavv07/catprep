@@ -1,5 +1,6 @@
 import https from "https";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -20,6 +21,56 @@ interface SendOtpOptions {
   studentName?: string;
 }
 
+function getSmtpConfig() {
+  const host = process.env.SMTP_HOST?.trim();
+  if (!host) return null;
+  const port = parseInt(process.env.SMTP_PORT || "587", 10);
+  const user = (process.env.SMTP_USERNAME || process.env.SMTP_USER || "").trim();
+  const pass = (process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "").trim();
+  const from = process.env.SMTP_FROM || process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+
+  return {
+    host,
+    port,
+    secure: port === 465,
+    auth: user && pass ? { user, pass } : undefined,
+    from,
+  };
+}
+
+async function sendViaSmtp(
+  to: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  const config = getSmtpConfig();
+  if (!config) return { success: false, error: "SMTP not configured" };
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      auth: config.auth,
+      tls: {
+        rejectUnauthorized: process.env.NODE_ENV === "production",
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: config.from,
+      to,
+      subject,
+      html,
+    });
+
+    return { success: true, id: info.messageId };
+  } catch (err: any) {
+    console.error("[SMTP Delivery Error]:", err?.message || "Failed to send email via SMTP");
+    return { success: false, error: "Email delivery failed via SMTP provider." };
+  }
+}
+
 function callResendApi(
   from: string,
   to: string,
@@ -31,7 +82,7 @@ function callResendApi(
     console.error("[Resend Error]: RESEND_API_KEY environment variable is not configured.");
     return Promise.resolve({
       success: false,
-      error: "RESEND_API_KEY environment variable is missing.",
+      error: "Email delivery service is unconfigured.",
     });
   }
 
@@ -88,19 +139,21 @@ function callResendApi(
   });
 }
 
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!domain) return email;
+  const maskedUser = user.length <= 2 ? user[0] + "*" : user[0] + "*".repeat(user.length - 2) + user.slice(-1);
+  return `${maskedUser}@${domain}`;
+}
+
 export async function sendOtpEmail({
   to,
   code,
   type,
   studentName = "Scholar",
-}: SendOtpOptions): Promise<{ success: boolean; error?: string; id?: string }> {
-  console.log(`\n========================================`);
-  console.log(`[PREPDESK OTP SERVICE]`);
-  console.log(`Type:       ${type}`);
-  console.log(`Recipient:  ${to}`);
-  console.log(`OTP Code:   ${code}`);
-  console.log(`Valid for:  10 minutes`);
-  console.log(`========================================\n`);
+}: SendOtpOptions): Promise<{ success: boolean; error?: string; id?: string; usedFallback?: boolean }> {
+  // Operational log only — NEVER print the OTP code to production logs
+  console.log(`[Email Service] Dispatching ${type} OTP to ${maskEmail(to)}`);
 
   const isReset = type === "FORGOT_PASSWORD";
   const title = isReset ? "Password Reset Verification" : "Sign-In Verification Code";
@@ -180,13 +233,21 @@ export async function sendOtpEmail({
 
   const subject = `[${code}] ${title} — PrepDesk`;
 
+  // 1. If SMTP is configured, use SMTP first
+  if (getSmtpConfig()) {
+    const smtpResult = await sendViaSmtp(to, subject, htmlContent);
+    if (smtpResult.success) {
+      return smtpResult;
+    }
+    console.warn("[Email Service] SMTP dispatch failed, trying Resend fallback if available...");
+  }
+
+  // 2. Use Resend API with custom domain (auth@catdesk.online)
   const primaryFrom = getPrimaryFrom();
   let usedFallback = false;
-
-  // 1. Try sending with the official custom domain (auth@catdesk.online)
   let result = await callResendApi(primaryFrom, to, subject, htmlContent);
 
-  // 2. If domain DNS is pending verification in Resend, fall back to onboarding sender seamlessly
+  // 3. Fallback to onboarding sender if custom domain DNS is pending in Resend
   if (!result.success && result.notVerified) {
     console.log(`[Resend Notice] Custom domain '${primaryFrom}' pending verification, retrying via fallback sender '${FALLBACK_FROM}'`);
     result = await callResendApi(FALLBACK_FROM, to, subject, htmlContent);

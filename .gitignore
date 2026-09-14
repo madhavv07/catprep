@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+data/uploads/*
+!data/uploads/.gitkeep
+data/*.bak.json

@@ -72,11 +72,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
   // Filter personal tasks
   const [taskFilter, setTaskFilter] = useState<'ALL' | 'PENDING' | 'COMPLETED'>('ALL');
 
-  // Secure admin elevation modal state (for students)
-  const [adminModalOpen, setAdminModalOpen] = useState(false);
-  const [adminPasswordInput, setAdminPasswordInput] = useState('');
-  const [adminModalError, setAdminModalError] = useState<string | null>(null);
-
   // Real-time Firestore sync for personal tasks
   useEffect(() => {
     if (!user?.uid) return;
@@ -218,23 +213,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
     }
   };
 
-  // Verify Admin Password for Role Elevation
-  const handleVerifyAdminAccess = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdminModalError(null);
 
-    const entered = adminPasswordInput.trim();
-    // Validate against administrator credentials
-    const validAdmin = entered === 'madhav07';
-
-    if (validAdmin) {
-      switchRoleDemo('admin');
-      setAdminModalOpen(false);
-      setAdminPasswordInput('');
-    } else {
-      setAdminModalError('Invalid administrator password. Access denied.');
-    }
-  };
 
   // Filtered tasks
   const filteredPersonalTasks = personalTasks.filter((t) => {
@@ -292,22 +271,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5">
-          {user?.role === 'admin' ? (
+          {user?.role === 'admin' && (
             <button
               onClick={() => switchRoleDemo(isAdmin ? 'student' : 'admin')}
               className="btn-glass px-4 py-2 text-zinc-200 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
             >
               <Shield className="w-3.5 h-3.5 text-indigo-400" />
               <span>{isAdmin ? 'Preview as Student' : 'Return to Admin Mode'}</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setAdminModalOpen(true)}
-              className="btn-glass px-3.5 py-2 text-zinc-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
-              title="Requires administrator password"
-            >
-              <Lock className="w-3 h-3 text-zinc-400" />
-              <span>Administrator Access</span>
             </button>
           )}
 
@@ -731,71 +701,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
         )}
       </div>
 
-      {/* Admin Password Verification Modal */}
-      {adminModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-2xl bg-white/[0.08] border border-white/[0.12] text-emerald-400 flex items-center justify-center font-bold mx-auto shadow-md">
-              <Shield className="w-6 h-6" />
-            </div>
-
-            <div className="text-center space-y-1">
-              <h3 className="text-lg font-bold text-white tracking-tight">
-                Administrator Verification
-              </h3>
-              <p className="text-xs text-zinc-400">
-                Enter the administrator password to switch into Admin mode.
-              </p>
-            </div>
-
-            <form onSubmit={handleVerifyAdminAccess} className="space-y-4">
-              <div>
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
-                  Admin Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3" />
-                  <input
-                    type="password"
-                    value={adminPasswordInput}
-                    onChange={(e) => setAdminPasswordInput(e.target.value)}
-                    placeholder="Enter password"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs glass-input text-zinc-100 placeholder-zinc-500 rounded-xl font-mono"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              {adminModalError && (
-                <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-                  <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                  <span>{adminModalError}</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAdminModalOpen(false);
-                    setAdminPasswordInput('');
-                    setAdminModalError(null);
-                  }}
-                  className="btn-glass px-4 py-2 text-xs text-zinc-400 hover:text-zinc-200 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-primary-glass px-5 py-2 font-semibold text-xs rounded-xl transition"
-                >
-                  Verify & Access
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

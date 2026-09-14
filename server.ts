@@ -3,6 +3,8 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
@@ -13,6 +15,7 @@ import { PROTECTED_TEST_KEYS } from './src/data/seedData.ts';
 import {
   initDatabase,
   getDatabaseSnapshot,
+  getSanitizedDatabaseSnapshot,
   executeTransaction,
   authenticateUser,
   enrollStudentInDb,
@@ -23,6 +26,17 @@ import {
   restoreDatabaseSnapshot,
   registerSseClient,
 } from './server/dbService.ts';
+import {
+  authenticateSession,
+  requireAuth,
+  requireAdmin,
+  requireStudent,
+  createSession,
+  destroySession,
+  SESSION_COOKIE_NAME,
+  getCookieOptions,
+  AuthRequest,
+} from './server/authMiddleware.ts';
 
 dotenv.config();
 
@@ -32,8 +46,39 @@ initDatabase();
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+// Production security headers via Helmet
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
+
+// Cookie parser for HttpOnly session tokens
+app.use(cookieParser());
+
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+// Cross-Origin Resource Sharing (CORS) with explicit credentials support
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// Authenticate session for every request
+app.use(authenticateSession);
 
 // Ensure persistent uploads directory exists for PDF attachments
 const UPLOADS_DIR = path.join(process.cwd(), 'data', 'uploads');
@@ -173,8 +218,59 @@ function maskEmail(email: string): string {
   return `${user[0]}${'*'.repeat(Math.max(1, user.length - 2))}${user[user.length - 1]}@${domain}`;
 }
 
+// -------------------------------------------------------------
+// Rate Limiting Engine (In-Memory IP Limiting)
+// -------------------------------------------------------------
+interface RateLimitRecord {
+  count: number;
+  resetTime: number;
+}
+const rateLimitStores = new Map<string, Map<string, RateLimitRecord>>();
+
+function createRateLimiter(limit: number, windowMs: number, name: string) {
+  const store = new Map<string, RateLimitRecord>();
+  rateLimitStores.set(name, store);
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, record] of store.entries()) {
+      if (now > record.resetTime) {
+        store.delete(key);
+      }
+    }
+  }, 60 * 1000);
+
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const key = `${ip}`;
+    const now = Date.now();
+    const record = store.get(key);
+
+    if (!record || now > record.resetTime) {
+      store.set(key, { count: 1, resetTime: now + windowMs });
+      return next();
+    }
+
+    if (record.count >= limit) {
+      const retryAfterSec = Math.ceil((record.resetTime - now) / 1000);
+      res.setHeader('Retry-After', retryAfterSec);
+      return res.status(429).json({
+        success: false,
+        error: `Too many requests. Please wait ${retryAfterSec} seconds before trying again.`,
+      });
+    }
+
+    record.count++;
+    next();
+  };
+}
+
+// Security rate limiters: max 5 requests per 15 min for auth; max 30 per min for Gemini
+const authLimiter = createRateLimiter(5, 15 * 60 * 1000, 'auth');
+const geminiLimiter = createRateLimiter(30, 60 * 1000, 'gemini');
+
 // User Authentication — Direct Login (Backward compatible + Master Admin)
-app.post('/api/db/auth/login', async (req, res) => {
+app.post('/api/db/auth/login', authLimiter, async (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
     return res.status(400).json({ success: false, error: 'Identifier and password are required' });
@@ -182,16 +278,18 @@ app.post('/api/db/auth/login', async (req, res) => {
   try {
     const user = await authenticateUser(identifier, password);
     if (user) {
-      return res.json({ success: true, user });
+      const session = createSession(user);
+      res.cookie(SESSION_COOKIE_NAME, session.token, getCookieOptions());
+      return res.json({ success: true, user, token: session.token });
     }
-    return res.status(401).json({ success: false, error: 'Invalid Student ID / Username or Password.' });
+    return res.status(401).json({ success: false, error: 'Invalid credentials.' });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
+    return res.status(500).json({ success: false, error: 'Authentication error' });
   }
 });
 
 // Step 1: Initiate Student Login (Sends OTP to enrolled student email)
-app.post('/api/auth/login/initiate', async (req, res) => {
+app.post('/api/auth/login/initiate', authLimiter, async (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
     return res.status(400).json({ success: false, error: 'Student ID and password are required.' });
@@ -199,12 +297,14 @@ app.post('/api/auth/login/initiate', async (req, res) => {
   try {
     const user = await authenticateUser(identifier, password);
     if (!user) {
-      return res.status(401).json({ success: false, error: 'Invalid Student ID / Username or Password.' });
+      return res.status(401).json({ success: false, error: 'Invalid credentials.' });
     }
 
-    // Admin accounts bypass 2FA for convenience
+    // Admin accounts log in directly with server session
     if (user.role === 'admin') {
-      return res.json({ success: true, requiresOtp: false, user });
+      const session = createSession(user);
+      res.cookie(SESSION_COOKIE_NAME, session.token, getCookieOptions());
+      return res.json({ success: true, requiresOtp: false, user, token: session.token });
     }
 
     // Student account — generate 6-digit OTP
@@ -220,7 +320,7 @@ app.post('/api/auth/login/initiate', async (req, res) => {
 
     const recipientEmail = (user.email && !user.email.endsWith('@prepdesk.edu')) ? user.email : 'madhavgajjar7@gmail.com';
 
-    // Dispatch OTP email via Resend
+    // Dispatch OTP email via SMTP / Resend
     const sendResult = await sendOtpEmail({
       to: recipientEmail,
       code: otpCode,
@@ -242,12 +342,12 @@ app.post('/api/auth/login/initiate', async (req, res) => {
         : undefined,
     });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
+    return res.status(500).json({ success: false, error: 'Authentication error' });
   }
 });
 
 // Step 2: Verify Login OTP
-app.post('/api/auth/login/verify-otp', async (req, res) => {
+app.post('/api/auth/login/verify-otp', authLimiter, async (req, res) => {
   const { sessionToken, otp } = req.body;
   if (!sessionToken || !otp) {
     return res.status(400).json({ success: false, error: 'Verification session token and OTP code are required.' });
@@ -275,13 +375,32 @@ app.post('/api/auth/login/verify-otp', async (req, res) => {
     });
   }
 
-  // OTP verified! Return authenticated user session
+  // OTP verified! Create server session and return authenticated user
+  const user = session.user;
+  const authSession = createSession(user);
+  res.cookie(SESSION_COOKIE_NAME, authSession.token, getCookieOptions());
   LOGIN_OTP_SESSIONS.delete(sessionToken);
-  return res.json({ success: true, user: session.user });
+
+  return res.json({ success: true, user, token: authSession.token });
+});
+
+// Session Logout
+app.post('/api/auth/logout', (req: AuthRequest, res) => {
+  const token = req.cookies?.[SESSION_COOKIE_NAME] || req.headers.authorization?.replace('Bearer ', '');
+  if (token) {
+    destroySession(token);
+  }
+  res.clearCookie(SESSION_COOKIE_NAME, getCookieOptions());
+  return res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Current Authenticated Session Profile
+app.get('/api/auth/me', requireAuth, (req: AuthRequest, res) => {
+  return res.json({ success: true, user: req.user });
 });
 
 // Forgot Password Step 1: Request Reset OTP
-app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
+app.post('/api/auth/forgot-password/request-otp', authLimiter, async (req, res) => {
   const { identifier } = req.body;
   if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
     return res.status(400).json({ success: false, error: 'Please enter your Student ID or registered email.' });
@@ -347,7 +466,7 @@ app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
 });
 
 // Forgot Password Step 2: Verify OTP and Set New Password (Syncs with Admin Vault)
-app.post('/api/auth/forgot-password/verify-and-reset', async (req, res) => {
+app.post('/api/auth/forgot-password/verify-and-reset', authLimiter, async (req, res) => {
   const { resetToken, otp, newPassword } = req.body;
   if (!resetToken || !otp || !newPassword) {
     return res.status(400).json({
@@ -406,19 +525,16 @@ app.post('/api/auth/forgot-password/verify-and-reset', async (req, res) => {
   }
 });
 
-// Student Roster & Enrollment
-app.get('/api/db/students', (req, res) => {
+// Student Roster & Enrollment (Admin Protected, Zero Password Hash Leakage)
+app.get('/api/db/students', requireAdmin, (req, res) => {
   const snapshot = getDatabaseSnapshot();
   const students = Object.values(snapshot.users)
     .filter((u) => u.role === 'student')
-    .map(({ passwordHash, ...profile }) => ({
-      ...profile,
-      currentPassword: passwordHash,
-    }));
+    .map(({ passwordHash, ...profile }) => profile);
   return res.json(students);
 });
 
-app.post('/api/db/students/enroll', async (req, res) => {
+app.post('/api/db/students/enroll', requireAdmin, async (req, res) => {
   const displayName = req.body.displayName || req.body.name;
   const { studentId, password, batchId, email } = req.body;
   if (!studentId || !displayName || !password) {
@@ -433,7 +549,7 @@ app.post('/api/db/students/enroll', async (req, res) => {
 });
 
 // Admin Student Password Reset
-app.put('/api/db/students/:uid/password', async (req, res) => {
+app.put('/api/db/students/:uid/password', requireAdmin, async (req, res) => {
   const uid = req.params.uid;
   const { newPassword } = req.body;
   if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 6) {
@@ -447,7 +563,7 @@ app.put('/api/db/students/:uid/password', async (req, res) => {
   }
 });
 
-app.delete('/api/db/students/:uid', async (req, res) => {
+app.delete('/api/db/students/:uid', requireAdmin, async (req, res) => {
   const uid = req.params.uid;
   if (uid === 'admin_madhav') {
     return res.status(400).json({ success: false, error: 'Cannot delete the primary administrator account.' });
@@ -460,14 +576,14 @@ app.delete('/api/db/students/:uid', async (req, res) => {
   }
 });
 
-// Class Tasks
-app.get('/api/db/tasks', (req, res) => {
+// Class Tasks (Admin writes, Authenticated reads)
+app.get('/api/db/tasks', requireAuth, (req, res) => {
   const snapshot = getDatabaseSnapshot();
   const tasks = Object.values(snapshot.tasks).sort((a, b) => (b.deadlineDate > a.deadlineDate ? 1 : -1));
   return res.json(tasks);
 });
 
-app.delete('/api/db/tasks/all/bulk', async (req, res) => {
+app.delete('/api/db/tasks/all/bulk', requireAdmin, async (req, res) => {
   try {
     await deleteAllTasksFromDb();
     return res.json({ success: true, message: 'All class tasks deleted successfully.' });
@@ -476,7 +592,7 @@ app.delete('/api/db/tasks/all/bulk', async (req, res) => {
   }
 });
 
-app.post('/api/db/tasks', async (req, res) => {
+app.post('/api/db/tasks', requireAdmin, async (req, res) => {
   const taskData = req.body;
   const id = taskData.id || `task_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   const now = new Date().toISOString();
@@ -502,7 +618,7 @@ app.post('/api/db/tasks', async (req, res) => {
   }
 });
 
-app.put('/api/db/tasks/:id', async (req, res) => {
+app.put('/api/db/tasks/:id', requireAdmin, async (req, res) => {
   const taskId = req.params.id;
   const updates = req.body;
   const now = new Date().toISOString();
@@ -534,7 +650,7 @@ app.put('/api/db/tasks/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/db/tasks/:id', async (req, res) => {
+app.delete('/api/db/tasks/:id', requireAdmin, async (req, res) => {
   const taskId = req.params.id;
   try {
     await executeTransaction((state) => {
@@ -564,23 +680,27 @@ app.delete('/api/db/tasks/:id', async (req, res) => {
   }
 });
 
-// Personal Tasks (Student Isolated)
-app.get('/api/db/personal-tasks', (req, res) => {
-  const studentUid = (req.query.studentUid as string) || '';
-  if (!studentUid) {
-    return res.json([]);
-  }
+// Personal Tasks (Strict Student IDOR Isolation)
+app.get('/api/db/personal-tasks', requireAuth, (req: AuthRequest, res) => {
+  const user = req.user!;
+  // Admins can view any student's tasks; students can only view their own
+  const targetUid = user.role === 'admin'
+    ? ((req.query.studentUid as string) || user.uid)
+    : user.uid;
+
   const snapshot = getDatabaseSnapshot();
-  const list = snapshot.personalTasks[studentUid] || [];
+  const list = snapshot.personalTasks[targetUid] || [];
   return res.json(list);
 });
 
-app.post('/api/db/personal-tasks', async (req, res) => {
-  const studentUid = req.body.studentUid || req.body.userId;
-  const { ...taskData } = req.body;
-  if (!studentUid) {
-    return res.status(400).json({ success: false, error: 'studentUid or userId is required' });
-  }
+app.post('/api/db/personal-tasks', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
+  // Enforce session user identity: students cannot create tasks on behalf of others
+  const studentUid = user.role === 'admin'
+    ? (req.body.studentUid || req.body.userId || user.uid)
+    : user.uid;
+
+  const { id: _ignoreId, ...taskData } = req.body;
   const id = `ptask_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   const now = new Date().toISOString();
   const newPTask = {
@@ -610,99 +730,119 @@ app.post('/api/db/personal-tasks', async (req, res) => {
   }
 });
 
-app.put('/api/db/personal-tasks/:id', async (req, res) => {
+app.put('/api/db/personal-tasks/:id', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const taskId = req.params.id;
-  const studentUid = req.body.studentUid || req.body.userId || (req.query.studentUid as string);
   const { ...updates } = req.body;
   const now = new Date().toISOString();
 
   try {
     const result = await executeTransaction((state) => {
-      // If studentUid not given, search across all personal tasks
-      let targetUid = studentUid;
-      if (!targetUid) {
-        for (const [uid, pList] of Object.entries(state.personalTasks)) {
-          if (pList.some((t) => t.id === taskId)) {
-            targetUid = uid;
-            break;
-          }
+      // Find owning user of this personal task
+      let ownerUid: string | null = null;
+      for (const [uid, pList] of Object.entries(state.personalTasks)) {
+        if (pList.some((t) => t.id === taskId)) {
+          ownerUid = uid;
+          break;
         }
       }
 
-      if (!targetUid || !state.personalTasks[targetUid]) {
+      if (!ownerUid || !state.personalTasks[ownerUid]) {
         throw new Error(`Personal task ${taskId} not found`);
       }
 
-      const list = state.personalTasks[targetUid];
+      // IDOR Guard: Students cannot modify another student's personal task
+      if (user.role !== 'admin' && ownerUid !== user.uid) {
+        throw new Error('Forbidden: You can only modify your own personal tasks.');
+      }
+
+      const list = state.personalTasks[ownerUid];
       const idx = list.findIndex((t) => t.id === taskId);
       if (idx !== -1) {
-        list[idx] = { ...list[idx], ...updates, updatedAt: now };
+        list[idx] = { ...list[idx], ...updates, updatedAt: now, id: taskId, userId: ownerUid, studentUid: ownerUid };
       }
-      state.personalTasks[targetUid] = list;
+      state.personalTasks[ownerUid] = list;
       return {
         state,
         result: list[idx],
-        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid: targetUid, taskId } },
+        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid: ownerUid, taskId } },
       };
     });
     return res.json({ success: true, task: result });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
+    const statusCode = err.message.includes('Forbidden') ? 403 : 500;
+    return res.status(statusCode).json({ success: false, error: err.message });
   }
 });
 
-app.delete('/api/db/personal-tasks/:id', async (req, res) => {
+app.delete('/api/db/personal-tasks/:id', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const taskId = req.params.id;
-  const studentUid = (req.query.studentUid as string) || (req.body?.studentUid as string) || (req.body?.userId as string);
 
   try {
     await executeTransaction((state) => {
-      let targetUid = studentUid;
-      if (!targetUid) {
-        for (const [uid, pList] of Object.entries(state.personalTasks)) {
-          if (pList.some((t) => t.id === taskId)) {
-            targetUid = uid;
-            break;
-          }
+      let ownerUid: string | null = null;
+      for (const [uid, pList] of Object.entries(state.personalTasks)) {
+        if (pList.some((t) => t.id === taskId)) {
+          ownerUid = uid;
+          break;
         }
       }
 
-      if (targetUid && state.personalTasks[targetUid]) {
-        state.personalTasks[targetUid] = state.personalTasks[targetUid].filter((t) => t.id !== taskId);
+      if (!ownerUid || !state.personalTasks[ownerUid]) {
+        return { state, result: true };
       }
+
+      // IDOR Guard: Students cannot delete another student's personal task
+      if (user.role !== 'admin' && ownerUid !== user.uid) {
+        throw new Error('Forbidden: You can only delete your own personal tasks.');
+      }
+
+      state.personalTasks[ownerUid] = state.personalTasks[ownerUid].filter((t) => t.id !== taskId);
       return {
         state,
         result: true,
-        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid, taskId } },
+        broadcastEvent: { type: 'PERSONAL_TASK_UPDATED', payload: { studentUid: ownerUid, taskId } },
       };
     });
     return res.json({ success: true });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
+    const statusCode = err.message.includes('Forbidden') ? 403 : 500;
+    return res.status(statusCode).json({ success: false, error: err.message });
   }
 });
 
-// Task Assignments / Completion (Strict Student Isolation)
-app.get('/api/db/assignments', (req, res) => {
-  const studentUid = req.query.studentUid as string;
-  if (!studentUid) {
+// Task Assignments / Completion (Strict Student IDOR Isolation)
+app.get('/api/db/assignments', requireAuth, (req: AuthRequest, res) => {
+  const user = req.user!;
+  // Students can only query their own assignments; Admins can specify studentUid
+  const targetUid = user.role === 'admin'
+    ? ((req.query.studentUid as string) || user.uid)
+    : user.uid;
+
+  if (!targetUid) {
     return res.json({});
   }
   const snapshot = getDatabaseSnapshot();
   const studentAssignments: Record<string, any> = {};
   for (const [key, assignment] of Object.entries(snapshot.taskAssignments)) {
-    if (assignment.studentUid === studentUid) {
+    if (assignment.studentUid === targetUid) {
       studentAssignments[assignment.taskId] = assignment;
     }
   }
   return res.json(studentAssignments);
 });
 
-app.post('/api/db/assignments/toggle', async (req, res) => {
-  const { taskId, studentUid, studentName } = req.body;
-  if (!taskId || !studentUid) {
-    return res.status(400).json({ success: false, error: 'taskId and studentUid are required' });
+app.post('/api/db/assignments/toggle', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
+  const { taskId } = req.body;
+  if (!taskId) {
+    return res.status(400).json({ success: false, error: 'taskId is required' });
   }
+
+  // Force student identity from authenticated session
+  const studentUid = user.role === 'admin' ? (req.body.studentUid || user.uid) : user.uid;
+  const studentName = user.role === 'admin' ? (req.body.studentName || user.displayName) : user.displayName;
 
   const key = `${taskId}_${studentUid}`;
   const now = new Date().toISOString();
@@ -733,8 +873,8 @@ app.post('/api/db/assignments/toggle', async (req, res) => {
   }
 });
 
-// Community Feed (Durable & Real-time)
-app.get('/api/db/feed', (req, res) => {
+// Community Feed (Authenticated, Real-time & Durable)
+app.get('/api/db/feed', requireAuth, (req, res) => {
   const snapshot = getDatabaseSnapshot();
   const posts = Object.values(snapshot.feedPosts || {}).sort((a: any, b: any) => {
     if (a.isPinned && !b.isPinned) return -1;
@@ -744,13 +884,19 @@ app.get('/api/db/feed', (req, res) => {
   return res.json(posts);
 });
 
-app.post('/api/db/feed', async (req, res) => {
+app.post('/api/db/feed', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const postData = req.body;
   const id = postData.id || `post_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   const now = new Date().toISOString();
+
+  // Enforce authenticated author information
   const newPost = {
     ...postData,
     id,
+    authorId: user.uid,
+    authorName: user.displayName || user.username || 'PrepDesk Scholar',
+    authorRole: user.role,
     comments: postData.comments || [],
     upvotes: postData.upvotes || 0,
     upvotedUserIds: postData.upvotedUserIds || [],
@@ -774,13 +920,23 @@ app.post('/api/db/feed', async (req, res) => {
   }
 });
 
-app.delete('/api/db/feed/:id', async (req, res) => {
+app.delete('/api/db/feed/:id', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const id = req.params.id;
+
   try {
     await executeTransaction((state) => {
-      if (state.feedPosts && state.feedPosts[id]) {
-        delete state.feedPosts[id];
+      if (!state.feedPosts || !state.feedPosts[id]) {
+        return { state, result: true };
       }
+
+      // Check delete permission: admin or post author
+      const post = state.feedPosts[id];
+      if (user.role !== 'admin' && post.authorId !== user.uid) {
+        throw new Error('Forbidden: You can only delete your own posts.');
+      }
+
+      delete state.feedPosts[id];
       return {
         state,
         result: true,
@@ -789,16 +945,30 @@ app.delete('/api/db/feed/:id', async (req, res) => {
     });
     return res.json({ success: true, id });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
+    const statusCode = err.message.includes('Forbidden') ? 403 : 500;
+    return res.status(statusCode).json({ success: false, error: err.message });
   }
 });
 
-app.post('/api/db/feed/:id/comments', async (req, res) => {
+app.post('/api/db/feed/:id/comments', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const postId = req.params.id;
-  const { authorId, authorName, authorRole, content } = req.body;
+  const { content } = req.body;
+
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return res.status(400).json({ success: false, error: 'Comment content is required.' });
+  }
+
   const commentId = `comm_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
   const now = new Date().toISOString();
-  const comment = { id: commentId, authorId, authorName, authorRole, content, createdAt: now };
+  const comment = {
+    id: commentId,
+    authorId: user.uid,
+    authorName: user.displayName || user.username || 'PrepDesk Scholar',
+    authorRole: user.role,
+    content: content.trim(),
+    createdAt: now,
+  };
 
   try {
     const updated = await executeTransaction((state) => {
@@ -820,13 +990,21 @@ app.post('/api/db/feed/:id/comments', async (req, res) => {
   }
 });
 
-app.delete('/api/db/feed/:postId/comments/:commentId', async (req, res) => {
+app.delete('/api/db/feed/:postId/comments/:commentId', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
   const { postId, commentId } = req.params;
+
   try {
     const updated = await executeTransaction((state) => {
       if (!state.feedPosts || !state.feedPosts[postId]) {
         throw new Error('Post not found');
       }
+
+      const comment = (state.feedPosts[postId].comments || []).find((c: any) => c.id === commentId);
+      if (comment && user.role !== 'admin' && comment.authorId !== user.uid) {
+        throw new Error('Forbidden: You can only delete your own comments.');
+      }
+
       state.feedPosts[postId].comments = (state.feedPosts[postId].comments || []).filter((c: any) => c.id !== commentId);
       return {
         state,
@@ -836,12 +1014,13 @@ app.delete('/api/db/feed/:postId/comments/:commentId', async (req, res) => {
     });
     return res.json({ success: true, post: updated });
   } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
+    const statusCode = err.message.includes('Forbidden') ? 403 : 500;
+    return res.status(statusCode).json({ success: false, error: err.message });
   }
 });
 
-// Timetable & Lecture Schedule Activities
-app.get('/api/db/schedule', (req, res) => {
+// Timetable & Lecture Schedule Activities (Authenticated)
+app.get('/api/db/schedule', requireAuth, (req, res) => {
   const snapshot = getDatabaseSnapshot();
   const list = Object.values(snapshot.scheduleActivities || {}).sort((a: any, b: any) =>
     (a.date || '') > (b.date || '') ? 1 : -1
@@ -849,14 +1028,14 @@ app.get('/api/db/schedule', (req, res) => {
   return res.json(list);
 });
 
-// Export complete database snapshot
-app.get('/api/db/export', (req, res) => {
-  const snapshot = getDatabaseSnapshot();
+// Export sanitized database snapshot (Admin only, password hashes completely excluded)
+app.get('/api/db/export', requireAdmin, (req, res) => {
+  const snapshot = getSanitizedDatabaseSnapshot();
   return res.json(snapshot);
 });
 
-// Restore & Merge Database Snapshot (Auto-Rehydration Engine)
-app.post('/api/db/restore', async (req, res) => {
+// Restore & Merge Database Snapshot (Admin only)
+app.post('/api/db/restore', requireAdmin, async (req, res) => {
   const snapshot = req.body;
   if (!snapshot || typeof snapshot !== 'object') {
     return res.status(400).json({ success: false, error: 'Invalid snapshot payload' });
@@ -884,33 +1063,54 @@ app.post('/api/db/restore', async (req, res) => {
   }
 });
 
-// Upload PDF study material or assignment attachment
-app.post('/api/db/upload-pdf', async (req, res) => {
-  const filename = req.body.filename || req.body.fileName;
-  const dataUrl = req.body.dataUrl || req.body.data;
+// Secure PDF Upload (Admin Only, 15MB limit, Magic Bytes %PDF- Verified, Directory Traversal Protected)
+app.post('/api/db/upload-pdf', requireAdmin, async (req: AuthRequest, res) => {
+  const filename = req.body.filename || req.body.fileName || 'document.pdf';
+  const dataUrl = req.body.dataUrl || req.body.data || req.body.fileData;
   const sizeFormatted = req.body.sizeFormatted;
 
-  if (!dataUrl) {
-    return res.status(400).json({ success: false, ok: false, error: 'No PDF data provided' });
+  if (!dataUrl || typeof dataUrl !== 'string') {
+    return res.status(400).json({ success: false, ok: false, error: 'No PDF data provided.' });
   }
 
   try {
-    const rawName = (filename || 'document.pdf').replace(/[^a-zA-Z0-9._-]/g, '_');
-    const safeName = `${Date.now()}_${rawName}`;
-    const filePath = path.join(UPLOADS_DIR, safeName);
-
-    // If base64 dataUrl, write binary file to disk
+    let buffer: Buffer;
     if (dataUrl.includes('base64,')) {
-      const base64Data = dataUrl.split('base64,')[1];
-      const buffer = Buffer.from(base64Data, 'base64');
-      fs.writeFileSync(filePath, buffer);
+      const parts = dataUrl.split('base64,');
+      // Validate MIME type in data URL header if present
+      if (parts[0] && !parts[0].includes('application/pdf')) {
+        return res.status(400).json({ success: false, ok: false, error: 'Invalid file type. Only PDF documents are allowed.' });
+      }
+      buffer = Buffer.from(parts[1], 'base64');
     } else {
-      // Direct raw text or data URL
-      fs.writeFileSync(filePath, dataUrl, 'utf-8');
+      buffer = Buffer.from(dataUrl, 'utf-8');
     }
 
-    const fileStats = fs.existsSync(filePath) ? fs.statSync(filePath) : null;
-    const sizeBytes = fileStats ? fileStats.size : 0;
+    // Maximum file size limit: 15MB
+    const MAX_PDF_SIZE = 15 * 1024 * 1024;
+    if (buffer.length > MAX_PDF_SIZE) {
+      return res.status(413).json({ success: false, ok: false, error: 'File size exceeds maximum 15MB limit.' });
+    }
+
+    // Magic bytes check: %PDF- (0x25 0x50 0x44 0x46 0x2D)
+    if (buffer.length < 5 || buffer.toString('utf-8', 0, 5) !== '%PDF-') {
+      return res.status(400).json({ success: false, ok: false, error: 'Invalid file format. File does not match PDF signature (%PDF-).' });
+    }
+
+    // Sanitize filename against directory traversal
+    const baseName = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeExtName = baseName.toLowerCase().endsWith('.pdf') ? baseName : `${baseName}.pdf`;
+    const safeUniqueName = `${Date.now()}_${safeExtName}`;
+    const filePath = path.join(UPLOADS_DIR, safeUniqueName);
+
+    // Prevent any directory traversal escaping UPLOADS_DIR
+    if (!filePath.startsWith(UPLOADS_DIR)) {
+      return res.status(400).json({ success: false, ok: false, error: 'Invalid file path.' });
+    }
+
+    fs.writeFileSync(filePath, buffer);
+
+    const sizeBytes = buffer.length;
     const formattedSize =
       sizeFormatted ||
       (sizeBytes > 1024 * 1024
@@ -918,8 +1118,8 @@ app.post('/api/db/upload-pdf', async (req, res) => {
         : `${Math.round(sizeBytes / 1024)} KB`);
 
     const attachment = {
-      name: filename || rawName,
-      url: `/uploads/${safeName}`,
+      name: safeExtName,
+      url: `/uploads/${safeUniqueName}`,
       sizeFormatted: formattedSize,
       sizeBytes,
       uploadedAt: new Date().toISOString(),
@@ -930,108 +1130,36 @@ app.post('/api/db/upload-pdf', async (req, res) => {
       ok: true,
       name: attachment.name,
       url: attachment.url,
+      fileUrl: attachment.url,
       sizeFormatted: attachment.sizeFormatted,
       sizeBytes: attachment.sizeBytes,
       attachment,
     });
   } catch (err: any) {
-    return res.status(500).json({ success: false, ok: false, error: err.message || 'PDF upload failed' });
+    return res.status(500).json({ success: false, ok: false, error: err.message || 'PDF upload failed.' });
   }
 });
 
-// Reset Clean Database & ACID test endpoint
-app.post('/api/db/reset-clean', async (req, res) => {
+// Reset Clean Database (Admin only)
+app.post('/api/db/reset-clean', requireAdmin, async (req, res) => {
   try {
     await resetCleanDatabase();
-    return res.json({ success: true, message: 'Database reset to canonical seed state with admin madhav' });
+    return res.json({ success: true, message: 'Database reset to canonical seed state.' });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.post('/api/db/acid-test', async (req, res) => {
-  try {
-    const results = {
-      atomicity: false,
-      consistency: false,
-      isolation: false,
-      durability: false,
-    };
-
-    // 1. Atomicity: execute transaction that throws and verify zero mutations leaked
-    const snapshotBefore = getDatabaseSnapshot();
-    const tasksCountBefore = Object.keys(snapshotBefore.tasks).length;
-    try {
-      await executeTransaction((state) => {
-        state.tasks['dummy_task_will_abort'] = { id: 'dummy_task_will_abort' } as any;
-        throw new Error('Simulated atomic failure');
-      });
-    } catch (expectedErr) {}
-    const snapshotAfterAbort = getDatabaseSnapshot();
-    results.atomicity =
-      !snapshotAfterAbort.tasks['dummy_task_will_abort'] &&
-      Object.keys(snapshotAfterAbort.tasks).length === tasksCountBefore;
-
-    // 2. Isolation: run concurrent write operations simultaneously
-    const concurrentCount = 10;
-    const promises = [];
-    for (let i = 0; i < concurrentCount; i++) {
-      promises.push(
-        executeTransaction((state) => {
-          const testId = `concurrent_task_${i}`;
-          state.tasks[testId] = {
-            id: testId,
-            section: 'VARC',
-            subject: 'VARC',
-            title: `Concurrent Task ${i}`,
-            deadlineDate: '2026-09-30',
-            status: 'draft',
-          } as any;
-          return { state, result: testId };
-        })
-      );
-    }
-    await Promise.all(promises);
-
-    const snapshotAfterConcurrent = getDatabaseSnapshot();
-    let allConcurrentPresent = true;
-    for (let i = 0; i < concurrentCount; i++) {
-      if (!snapshotAfterConcurrent.tasks[`concurrent_task_${i}`]) {
-        allConcurrentPresent = false;
-        break;
-      }
-    }
-    results.isolation = allConcurrentPresent;
-
-    // Clean up concurrent test tasks
-    await executeTransaction((state) => {
-      for (let i = 0; i < concurrentCount; i++) {
-        delete state.tasks[`concurrent_task_${i}`];
-      }
-      return { state, result: true };
-    });
-
-    // 3. Consistency: verify invariants hold (users have passwords, tasks have IDs)
-    const consistencySnap = getDatabaseSnapshot();
-    results.consistency = Boolean(
-      consistencySnap.users['admin_madhav'] &&
-      consistencySnap.users['admin_madhav'].role === 'admin' &&
-      consistencySnap.version > 0
-    );
-
-    // 4. Durability: re-read directly from disk file to verify persistence
-    const rawDisk = fs.readFileSync(path.join(process.cwd(), 'data', 'prepdesk_db.json'), 'utf-8');
-    const parsedDisk = JSON.parse(rawDisk);
-    results.durability = parsedDisk.version === consistencySnap.version;
-
-    return res.json({ success: true, results });
-  } catch (err: any) {
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
+// Allowed Gemini AI Models for safe proxying
+const ALLOWED_GEMINI_MODELS = new Set([
+  'gemini-3.1-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro',
+]);
 
 // VARC AI Vocabulary Lookup Endpoint with 3-Tier Multi-Source Lexical Engine
-app.post('/api/gemini/vocab-lookup', async (req, res) => {
+app.post('/api/gemini/vocab-lookup', requireAuth, geminiLimiter, async (req: AuthRequest, res) => {
   const { word, context } = req.body;
   if (!word || typeof word !== 'string' || word.trim().length === 0) {
     return res.status(400).json({ error: 'Valid word is required' });
@@ -1162,7 +1290,7 @@ function generateLocalTestQuestions(words: any[], count: number) {
 }
 
 // VARC AI Vocabulary Test Generator with Protected Answer Keys
-app.post('/api/gemini/generate-test', async (req, res) => {
+app.post('/api/gemini/generate-test', requireAuth, geminiLimiter, async (req: AuthRequest, res) => {
   const { words, count = 10, difficulty = 'Mixed' } = req.body;
   if (!Array.isArray(words) || words.length === 0) {
     return res.status(400).json({ error: 'Word list is required to generate test' });
@@ -1276,8 +1404,10 @@ Return strictly valid JSON array of question objects:
 });
 
 // Trusted Server-Side Test Submission & Scoring Endpoint
-app.post('/api/tests/submit', async (req, res) => {
-  const { testId, sessionId, studentUid, answers = {}, timeSpentSeconds = 0, questions = [] } = req.body;
+app.post('/api/tests/submit', requireAuth, async (req: AuthRequest, res) => {
+  const user = req.user!;
+  const { testId, sessionId, answers = {}, timeSpentSeconds = 0, questions = [] } = req.body;
+  const studentUid = user.role === 'admin' ? (req.body.studentUid || user.uid) : user.uid;
 
   if (!testId && !sessionId) {
     return res.status(400).json({ error: 'testId or sessionId is required to score test' });
@@ -1391,7 +1521,7 @@ app.post('/api/tests/submit', async (req, res) => {
 });
 
 // VARC AI Study Assistant (focused study explanations)
-app.post('/api/gemini/study-assist', async (req, res) => {
+app.post('/api/gemini/study-assist', requireAuth, geminiLimiter, async (req: AuthRequest, res) => {
   const { action, word, question, selectedAnswer, correctAnswer } = req.body;
   if (!word) {
     return res.status(400).json({ error: 'Target word is required' });
@@ -1448,11 +1578,21 @@ Provide a brief, encouraging 2-sentence explanation of why "${selectedAnswer}" i
 
 // General Secure Server-Side Proxy for Gemini API
 // Keeps the GEMINI_API_KEY strictly on the server and never exposed to the client
-app.post('/api/gemini/proxy', async (req, res) => {
+app.post('/api/gemini/proxy', requireAuth, geminiLimiter, async (req: AuthRequest, res) => {
   const { prompt, systemInstruction, model = 'gemini-3.1-flash-lite', temperature = 0.4 } = req.body;
-  if (!prompt) {
-    return res.status(400).json({ error: 'Prompt is required' });
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Prompt is required and must be a string.' });
   }
+
+  // Enforce prompt length boundary (max 4000 characters)
+  if (prompt.length > 4000) {
+    return res.status(400).json({ error: 'Prompt exceeds maximum allowed length of 4000 characters.' });
+  }
+
+  // Model whitelist enforcement
+  const safeModel = typeof model === 'string' && ALLOWED_GEMINI_MODELS.has(model)
+    ? model
+    : 'gemini-3.1-flash-lite';
 
   try {
     const ai = getAI();
@@ -1462,7 +1602,7 @@ app.post('/api/gemini/proxy', async (req, res) => {
 
     const response = await withTimeout(
       ai.models.generateContent({
-        model,
+        model: safeModel,
         contents: prompt,
         config: {
           systemInstruction: systemInstruction || undefined,
@@ -1480,8 +1620,10 @@ app.post('/api/gemini/proxy', async (req, res) => {
 });
 
 // AI Personalization Engine for CAT preparation based on actual student performance
-app.post('/api/ai/personalized-recommendations', async (req, res) => {
-  const { studentUid, accuracy, weakAreas = [], section = 'All' } = req.body;
+app.post('/api/ai/personalized-recommendations', requireAuth, geminiLimiter, async (req: AuthRequest, res) => {
+  const user = req.user!;
+  const { accuracy, weakAreas = [], section = 'All' } = req.body;
+  const studentUid = user.role === 'admin' ? (req.body.studentUid || user.uid) : user.uid;
 
   try {
     const ai = getAI();

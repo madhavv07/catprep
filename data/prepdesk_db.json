@@ -1,6 +1,6 @@
 {
-  "version": 117,
-  "lastModified": "2026-09-14T09:50:24.169Z",
+  "version": 136,
+  "lastModified": "2026-09-14T10:35:35.556Z",
   "users": {
     "admin_madhav": {
       "uid": "admin_madhav",
@@ -11,8 +11,8 @@
       "batchId": "B-CAT2701",
       "mentor": "Administrator",
       "createdAt": "2026-09-01T00:00:00.000Z",
-      "lastLoginAt": "2026-09-14T09:17:34.312Z",
-      "passwordHash": "madhav07"
+      "lastLoginAt": "2026-09-14T10:35:34.461Z",
+      "passwordHash": "$2b$12$FI37XXaJ1IFK8W9ctJ540eAGaKzDKIdZwEjhMf0/4z2OyZEP2T2jW"
     },
     "student_mad_mu0zlkcs": {
       "uid": "student_mad_mu0zlkcs",
@@ -24,7 +24,7 @@
       "mentor": "Administrator",
       "createdAt": "2026-09-14T08:34:32.908Z",
       "lastLoginAt": "2026-09-14T09:50:24.167Z",
-      "passwordHash": "CAT27#BGg99"
+      "passwordHash": "$2b$12$jk9ss3TwM6gIkoOF9LuDEeBYdGSaHGq0Isy7ApjgTDOvMQchXbHo6"
     }
   },
   "tasks": {},

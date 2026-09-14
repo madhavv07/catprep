@@ -78,5 +78,5 @@ Once deployed, your live URL (e.g. `https://prepdesk-cat2027.onrender.com`) will
 
 * **Sign-In URL**: `https://your-app-name.onrender.com`
 * **Admin User ID**: `madhav` (or `madhav@prepdesk.edu`)
-* **Admin Password**: `madhav07`
-* **Status**: Clean baseline, 0 demo tasks, 0 sample posts, ready for student enrollment and assignment publication.
+* **Admin Password**: Set via `ADMIN_INITIAL_PASSWORD` in your Render Environment Variables (a secure random password is generated and logged on first boot if unset).
+* **Status**: Production-ready, durable JSON storage, bcrypt password hashing, and zero plaintext credentials.

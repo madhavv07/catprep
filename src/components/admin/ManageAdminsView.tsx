@@ -63,6 +63,15 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   const [copiedPassId, setCopiedPassId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // One-time credential display for newly enrolled students (passwords are bcrypt-hashed and never stored plaintext)
+  const [lastEnrolledStudent, setLastEnrolledStudent] = useState<{
+    studentId: string;
+    displayName: string;
+    email: string;
+    password: string;
+  } | null>(null);
+  const [copiedEnrollCreds, setCopiedEnrollCreds] = useState(false);
+
   // Password visibility map (student uid -> boolean)
   const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
 
@@ -178,27 +187,50 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   };
 
   const handleCopySinglePassword = (s: UserProfile) => {
-    const pass = s.currentPassword || 'None';
+    const pass = s.currentPassword || 'Protected';
     navigator.clipboard.writeText(pass);
     setCopiedPassId(s.uid);
     setTimeout(() => setCopiedPassId(null), 2500);
   };
 
-  const handleCopyCredentials = (s: UserProfile) => {
-    const pass = s.currentPassword || 'Contact Admin';
+  const handleCopyNewlyEnrolledCredentials = () => {
+    if (!lastEnrolledStudent) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catdesk.online';
     const text = [
       `🎓 PREPDESK CAT 2027 — Official Scholar Credentials`,
       `----------------------------------------------------`,
+      `Student ID:   ${lastEnrolledStudent.studentId}`,
+      `Scholar Name: ${lastEnrolledStudent.displayName}`,
+      `Email:        ${lastEnrolledStudent.email}`,
+      `Password:     ${lastEnrolledStudent.password}`,
+      `Batch:        ${batchId || 'B-CAT2701'}`,
+      `Login Portal: ${origin}`,
+      `Target Exam:  CAT 2027`,
+      `----------------------------------------------------`,
+      `Log in at ${origin} using your Student ID and Password.`,
+      `Please save this password securely.`,
+    ].join('\n');
+
+    navigator.clipboard.writeText(text);
+    setCopiedEnrollCreds(true);
+    setTimeout(() => setCopiedEnrollCreds(false), 3000);
+  };
+
+  const handleCopyCredentials = (s: UserProfile) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catdesk.online';
+    const text = [
+      `🎓 PREPDESK CAT 2027 — Official Scholar Account`,
+      `----------------------------------------------------`,
       `Student ID:   ${s.studentId}`,
       `Scholar Name: ${s.displayName}`,
       `Email:        ${s.email || 'None'}`,
-      `Password:     ${pass}`,
+      `Password:     [Protected / Encrypted with bcrypt]`,
       `Batch:        ${s.batchId || 'B-CAT2701'}`,
       `Login Portal: ${origin}`,
       `Target Exam:  CAT 2027`,
       `----------------------------------------------------`,
       `Log in at ${origin} using your Student ID and Password.`,
+      `If forgotten, use the "Forgot Password" self-service link on the login page.`,
     ].join('\n');
 
     navigator.clipboard.writeText(text);
@@ -293,11 +325,17 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       });
 
       if (res.success) {
+        setLastEnrolledStudent({
+          studentId: cleanId,
+          displayName: cleanName,
+          email: cleanEmail,
+          password: cleanPass,
+        });
         setSuccess(`Successfully enrolled student ${cleanName} (${cleanId})!`);
         setStudentId('');
         setDisplayName('');
         setStudentEmail('');
-        setPassword('');
+        setPassword(generateBreachFreePassword());
       } else {
         setError(res.error || 'Failed to enroll student.');
       }
@@ -367,6 +405,42 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
             <div className="p-3 bg-emerald-950/60 border border-emerald-800/50 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{success}</span>
+            </div>
+          )}
+
+          {lastEnrolledStudent && (
+            <div className="p-4 bg-emerald-950/80 border border-emerald-500/50 rounded-2xl text-xs text-emerald-200 space-y-2.5 animate-in fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-bold text-emerald-400">
+                  <Key className="w-4 h-4" />
+                  <span>Student Credentials Generated (One-Time Display)</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLastEnrolledStudent(null)}
+                  className="text-zinc-400 hover:text-zinc-200 text-xs cursor-pointer p-1"
+                  title="Dismiss banner"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-[11px] text-zinc-300">
+                Passwords are protected using <strong>bcrypt</strong> and cannot be recovered in plaintext once dismissed. Copy and share these credentials with the student now:
+              </p>
+              <div className="p-2.5 bg-black/60 rounded-xl font-mono text-[11px] space-y-1 text-zinc-300 border border-zinc-800">
+                <div>Student ID: <strong className="text-white">{lastEnrolledStudent.studentId}</strong></div>
+                <div>Scholar Name: <strong className="text-white">{lastEnrolledStudent.displayName}</strong></div>
+                <div>Email: <strong className="text-white">{lastEnrolledStudent.email}</strong></div>
+                <div>Initial Password: <strong className="text-emerald-400">{lastEnrolledStudent.password}</strong></div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyNewlyEnrolledCredentials}
+                className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl flex items-center justify-center gap-2 transition cursor-pointer text-xs"
+              >
+                {copiedEnrollCreds ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedEnrollCreds ? 'Copied Credentials to Clipboard!' : 'Copy Full Student Credentials'}</span>
+              </button>
             </div>
           )}
 
@@ -564,36 +638,13 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
                           )}
                         </div>
 
-                        {/* Password Display Row */}
+                        {/* Password Display Row (bcrypt hashed, never revealed in cleartext) */}
                         <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-zinc-950/90 border border-zinc-800 rounded-lg text-xs">
                           <span className="text-[10px] uppercase font-bold text-zinc-500">Password:</span>
-                          <span className="font-mono font-bold text-emerald-400 tracking-wider">
-                            {isPasswordRevealed ? (s.currentPassword || 'None') : '••••••••'}
+                          <span className="font-mono text-xs text-zinc-400 font-medium">
+                            [Protected]
                           </span>
-
-                          <button
-                            type="button"
-                            onClick={() => togglePasswordVisibility(s.uid)}
-                            className="p-1 text-zinc-400 hover:text-zinc-200 transition cursor-pointer"
-                            title={isPasswordRevealed ? 'Hide Password' : 'Show Password'}
-                          >
-                            {isPasswordRevealed ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                          </button>
-
-                          {s.currentPassword && (
-                            <button
-                              type="button"
-                              onClick={() => handleCopySinglePassword(s)}
-                              className="p-1 text-zinc-400 hover:text-emerald-400 transition cursor-pointer"
-                              title="Copy password only"
-                            >
-                              {copiedPassId === s.uid ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          )}
+                          <span className="text-[10px] text-zinc-600 font-mono">(bcrypt hashed)</span>
                         </div>
                       </div>
                     </div>

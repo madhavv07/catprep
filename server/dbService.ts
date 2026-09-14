@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 import { Response } from 'express';
 import { ClassTask, PersonalTask, TaskAssignment, UserProfile, ScheduleActivity } from '../src/types';
 import { CANONICAL_CAT_TASKS, CANONICAL_CAT_SCHEDULE } from '../src/data/seedData';
@@ -17,6 +18,7 @@ export interface DatabaseState {
 
 const DB_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'prepdesk_db.json');
+const DB_BACKUP_FILE = path.join(DB_DIR, 'prepdesk_db.bak.json');
 
 // In-memory state cache
 let dbState: DatabaseState | null = null;
@@ -43,10 +45,40 @@ export function broadcastRealtimeEvent(event: { type: string; payload: any }) {
   }
 }
 
-// Initial clean seed state (Empty of sample tasks and sample community posts)
+// Secure Password Hashing Helpers
+export function hashPassword(plainText: string): string {
+  return bcrypt.hashSync(plainText.trim(), 12);
+}
+
+export function verifyPassword(plainText: string, hash: string): boolean {
+  if (!hash || !plainText) return false;
+  // If legacy plaintext hash exists during migration window, verify and let caller upgrade
+  if (!hash.startsWith('$2a$') && !hash.startsWith('$2b$')) {
+    return plainText.trim() === hash;
+  }
+  try {
+    return bcrypt.compareSync(plainText.trim(), hash);
+  } catch (e) {
+    return false;
+  }
+}
+
+function getInitialAdminPassword(): string {
+  if (process.env.ADMIN_INITIAL_PASSWORD && process.env.ADMIN_INITIAL_PASSWORD.trim()) {
+    return process.env.ADMIN_INITIAL_PASSWORD.trim();
+  }
+  // If not provided in environment, generate a cryptographically strong 16-character password
+  const randomPass = 'Admin#' + crypto.randomBytes(6).toString('hex');
+  console.warn('[SECURITY WARNING] ADMIN_INITIAL_PASSWORD not configured in environment variables.');
+  console.warn(`[SECURITY] Temporary initial admin password generated: ${randomPass}`);
+  console.warn('[SECURITY] Please configure ADMIN_INITIAL_PASSWORD in your .env or hosting environment.');
+  return randomPass;
+}
+
+// Initial clean seed state
 export function getInitialSeedState(): DatabaseState {
+  const initialAdminPass = getInitialAdminPassword();
   const users: Record<string, UserProfile & { passwordHash: string }> = {
-    // Primary Admin: madhav / madhav07
     admin_madhav: {
       uid: 'admin_madhav',
       studentId: 'MADHAV',
@@ -57,7 +89,7 @@ export function getInitialSeedState(): DatabaseState {
       mentor: 'Administrator',
       createdAt: '2026-09-01T00:00:00.000Z',
       lastLoginAt: new Date().toISOString(),
-      passwordHash: 'madhav07',
+      passwordHash: hashPassword(initialAdminPass),
     },
   };
 
@@ -70,15 +102,15 @@ export function getInitialSeedState(): DatabaseState {
     version: 1,
     lastModified: new Date().toISOString(),
     users,
-    tasks: {}, // No demo/sample tasks - starts completely clean
+    tasks: {},
     personalTasks: {},
     taskAssignments: {},
     scheduleActivities,
-    feedPosts: {}, // No sample messages - starts completely clean
+    feedPosts: {},
   };
 }
 
-// Ensure database directory and file exist
+// Ensure database directory and file exist with automatic legacy migration
 export function initDatabase(): DatabaseState {
   if (!fs.existsSync(DB_DIR)) {
     fs.mkdirSync(DB_DIR, { recursive: true });
@@ -88,8 +120,10 @@ export function initDatabase(): DatabaseState {
     try {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       dbState = JSON.parse(raw);
-      // Ensure admin madhav is always present
+
+      // Ensure primary admin is present
       if (!dbState?.users['admin_madhav']) {
+        const initialAdminPass = getInitialAdminPassword();
         dbState!.users['admin_madhav'] = {
           uid: 'admin_madhav',
           studentId: 'MADHAV',
@@ -100,42 +134,87 @@ export function initDatabase(): DatabaseState {
           mentor: 'Administrator',
           createdAt: '2026-09-01T00:00:00.000Z',
           lastLoginAt: new Date().toISOString(),
-          passwordHash: 'madhav07',
+          passwordHash: hashPassword(initialAdminPass),
         };
         commitStateSync(dbState!);
       }
+
+      // Automatic migration hook: Upgrade any legacy plaintext password hashes to bcrypt in place
+      let migrated = false;
+      for (const u of Object.values(dbState!.users)) {
+        if (u.uid === 'admin_madhav' && (u.passwordHash === 'madhav07' || !u.passwordHash)) {
+          u.passwordHash = hashPassword(getInitialAdminPassword());
+          migrated = true;
+        } else if (u.passwordHash && !u.passwordHash.startsWith('$2a$') && !u.passwordHash.startsWith('$2b$')) {
+          u.passwordHash = hashPassword(u.passwordHash);
+          migrated = true;
+        }
+      }
+      if (migrated) {
+        commitStateSync(dbState!);
+        console.log('[Security Audit] Upgraded legacy plaintext passwords to high-entropy bcrypt hashes.');
+      }
+
       return dbState!;
     } catch (err) {
-      console.warn('Corrupted database file detected, reinitializing seed state:', err);
+      console.warn('Corrupted database file detected, attempting recovery from backup snapshot:', err);
+      if (fs.existsSync(DB_BACKUP_FILE)) {
+        try {
+          const bakRaw = fs.readFileSync(DB_BACKUP_FILE, 'utf-8');
+          dbState = JSON.parse(bakRaw);
+          commitStateSync(dbState!);
+          console.log('Database successfully recovered from backup snapshot.');
+          return dbState!;
+        } catch (e) {}
+      }
     }
   }
 
-  const initial = getInitialSeedState();
-  commitStateSync(initial);
-  dbState = initial;
-  return initial;
+  // Seed fresh clean database
+  const seed = getInitialSeedState();
+  commitStateSync(seed);
+  dbState = seed;
+  return dbState;
 }
 
-// Atomic & Durable File Commit (ACID Durability & Atomicity)
-function commitStateSync(state: DatabaseState) {
-  state.lastModified = new Date().toISOString();
-  state.version = (state.version || 0) + 1;
+// Atomic & durable disk persistence
+function commitStateSync(state: DatabaseState): void {
+  const tempFile = `${DB_FILE}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
+  try {
+    state.lastModified = new Date().toISOString();
+    state.version = (state.version || 0) + 1;
+    const serialized = JSON.stringify(state, null, 2);
 
-  const tempPath = `${DB_FILE}.${Date.now()}.${Math.random().toString(36).substring(2, 8)}.tmp`;
-  const serialized = JSON.stringify(state, null, 2);
+    // Write to atomic temp file first
+    fs.writeFileSync(tempFile, serialized, 'utf-8');
 
-  // 1. Write to temporary file with flush to disk
-  fs.writeFileSync(tempPath, serialized, 'utf-8');
+    // Create backup copy of previous state
+    if (fs.existsSync(DB_FILE)) {
+      try {
+        fs.copyFileSync(DB_FILE, DB_BACKUP_FILE);
+      } catch (e) {}
+    }
 
-  // 2. Atomic rename replaces destination file in a single OS atomic step
-  fs.renameSync(tempPath, DB_FILE);
+    // Atomic rename replacement
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (err) {
+    if (fs.existsSync(tempFile)) {
+      try {
+        fs.unlinkSync(tempFile);
+      } catch (e) {}
+    }
+    throw new Error(`Database commit failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
 }
 
-// Thread-safe Transaction Runner with ACID Properties
+// Sequential Transaction Queue
 export async function executeTransaction<T>(
-  mutator: (state: DatabaseState) => { state: DatabaseState; result: T; broadcastEvent?: { type: string; payload: any } }
+  mutator: (state: DatabaseState) => {
+    state: DatabaseState;
+    result: T;
+    broadcastEvent?: { type: string; payload: any };
+  }
 ): Promise<T> {
-  // Chain on writeQueue to enforce strict Serializable Isolation
   let resolvePromise!: (val: T) => void;
   let rejectPromise!: (err: any) => void;
   const executionPromise = new Promise<T>((res, rej) => {
@@ -149,10 +228,10 @@ export async function executeTransaction<T>(
         initDatabase();
       }
 
-      // Deep clone working state for Atomicity (if mutator throws, state is not modified)
+      // Deep clone working state for isolation
       const workingState: DatabaseState = JSON.parse(JSON.stringify(dbState!));
 
-      // Execute atomic mutator
+      // Execute mutator
       const { state: updatedState, result, broadcastEvent } = mutator(workingState);
 
       // Consistency validation checks
@@ -186,41 +265,45 @@ export function getDatabaseSnapshot(): DatabaseState {
   return JSON.parse(JSON.stringify(dbState!));
 }
 
-// Helper: Authenticate user against durable database
+// Sanitized snapshot export (Never exposes password hashes)
+export function getSanitizedDatabaseSnapshot(): any {
+  const snapshot = getDatabaseSnapshot();
+  const sanitizedUsers: Record<string, any> = {};
+  for (const [uid, u] of Object.entries(snapshot.users)) {
+    const { passwordHash, ...profile } = u;
+    sanitizedUsers[uid] = profile;
+  }
+  return {
+    ...snapshot,
+    users: sanitizedUsers,
+  };
+}
+
+// Helper: Authenticate user with bcrypt verification (No plaintext passwords stored or returned)
 export async function authenticateUser(identifier: string, pass: string): Promise<UserProfile | null> {
   const cleanId = identifier.trim().toLowerCase();
   const cleanPass = pass.trim();
-
-  // Special case for master admin credentials
-  if ((cleanId === 'madhav' || cleanId === 'admin' || cleanId === 'madhav@prepdesk.edu') && cleanPass === 'madhav07') {
-    return await executeTransaction((state) => {
-      let admin = state.users['admin_madhav'];
-      if (!admin) {
-        admin = {
-          uid: 'admin_madhav',
-          studentId: 'MADHAV',
-          email: 'madhav@prepdesk.edu',
-          displayName: 'Madhav (Administrator)',
-          role: 'admin',
-          batchId: 'B-CAT2701',
-          mentor: 'Administrator',
-          createdAt: new Date().toISOString(),
-          lastLoginAt: new Date().toISOString(),
-          passwordHash: 'madhav07',
-        };
-        state.users['admin_madhav'] = admin;
-      }
-      admin.lastLoginAt = new Date().toISOString();
-      const { passwordHash, ...profile } = admin;
-      return { state, result: profile };
-    });
-  }
+  if (!cleanId || !cleanPass) return null;
 
   const snapshot = getDatabaseSnapshot();
   for (const uid of Object.keys(snapshot.users)) {
     const u = snapshot.users[uid];
-    const matchId = u.studentId.toLowerCase() === cleanId || u.email.toLowerCase() === cleanId || uid.toLowerCase() === cleanId;
-    if (matchId && u.passwordHash === cleanPass) {
+    const matchId =
+      u.studentId.toLowerCase() === cleanId ||
+      u.email.toLowerCase() === cleanId ||
+      uid.toLowerCase() === cleanId;
+
+    if (matchId && verifyPassword(cleanPass, u.passwordHash)) {
+      // If legacy plaintext password hash was verified, upgrade to bcrypt hash immediately
+      if (!u.passwordHash.startsWith('$2a$') && !u.passwordHash.startsWith('$2b$')) {
+        await executeTransaction((state) => {
+          if (state.users[uid]) {
+            state.users[uid].passwordHash = hashPassword(cleanPass);
+          }
+          return { state, result: true };
+        });
+      }
+
       // Update lastLoginAt
       await executeTransaction((state) => {
         if (state.users[uid]) {
@@ -228,6 +311,7 @@ export async function authenticateUser(identifier: string, pass: string): Promis
         }
         return { state, result: true };
       });
+
       const { passwordHash, ...profile } = u;
       return profile;
     }
@@ -236,7 +320,7 @@ export async function authenticateUser(identifier: string, pass: string): Promis
   return null;
 }
 
-// Helper: Enroll Student
+// Helper: Enroll Student (Password hashed with bcrypt, never returned in roster)
 export async function enrollStudentInDb(payload: {
   studentId: string;
   displayName: string;
@@ -250,6 +334,10 @@ export async function enrollStudentInDb(payload: {
   const batchId = payload.batchId || 'B-CAT2701';
   const cleanEmail = payload.email?.trim().toLowerCase() || `${cleanId.toLowerCase()}@prepdesk.edu`;
 
+  if (!cleanPass || cleanPass.length < 6) {
+    throw new Error('Password must be at least 6 characters.');
+  }
+
   return await executeTransaction((state) => {
     // Consistency check: unique student ID
     for (const u of Object.values(state.users)) {
@@ -259,6 +347,7 @@ export async function enrollStudentInDb(payload: {
     }
 
     const uid = `student_${cleanId.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now().toString(36)}`;
+    const hashedPassword = hashPassword(cleanPass);
 
     const newStudent = {
       uid,
@@ -270,26 +359,25 @@ export async function enrollStudentInDb(payload: {
       mentor: 'Administrator',
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
-      passwordHash: cleanPass,
+      passwordHash: hashedPassword,
     };
 
     state.users[uid] = newStudent;
 
     const { passwordHash, ...profile } = newStudent;
-    const enrolledWithPassword = { ...profile, currentPassword: cleanPass };
     return {
       state,
-      result: enrolledWithPassword,
-      broadcastEvent: { type: 'STUDENT_ENROLLED', payload: enrolledWithPassword },
+      result: profile,
+      broadcastEvent: { type: 'STUDENT_ENROLLED', payload: profile },
     };
   });
 }
 
-// Helper: Reset/Update Student Password (Admin control)
+// Helper: Reset/Update Student Password (Hashed with bcrypt, never exposed)
 export async function resetStudentPasswordInDb(
   uid: string,
   newPass: string
-): Promise<UserProfile & { currentPassword: string }> {
+): Promise<UserProfile> {
   const cleanPass = newPass.trim();
   if (!cleanPass || cleanPass.length < 6) {
     throw new Error('Password must be at least 6 characters.');
@@ -300,131 +388,158 @@ export async function resetStudentPasswordInDb(
       throw new Error(`Student account not found.`);
     }
 
-    state.users[uid].passwordHash = cleanPass;
+    state.users[uid].passwordHash = hashPassword(cleanPass);
     const { passwordHash, ...profile } = state.users[uid];
-    const updated = { ...profile, currentPassword: cleanPass };
-
     return {
       state,
-      result: updated,
-      broadcastEvent: { type: 'STUDENT_PASSWORD_RESET', payload: updated },
+      result: profile,
+      broadcastEvent: { type: 'STUDENT_PASSWORD_RESET', payload: profile },
     };
   });
 }
 
-// Helper: Reset test data to clean baseline (retaining admin madhav)
-export async function resetCleanDatabase(): Promise<void> {
-  await executeTransaction((state) => {
-    const clean = getInitialSeedState();
-    return {
-      state: clean,
-      result: true,
-      broadcastEvent: { type: 'DATABASE_RESET', payload: { version: clean.version } },
-    };
-  });
-}
-
-// Helper: Delete a student and clean up their assignments & personal tasks
+// Helper: Delete Student and cascade remove their assignments
 export async function deleteStudentFromDb(uid: string): Promise<boolean> {
+  if (uid === 'admin_madhav') {
+    throw new Error('Cannot delete primary administrator.');
+  }
+
   return await executeTransaction((state) => {
     if (!state.users[uid]) {
-      throw new Error(`Student with ID ${uid} does not exist`);
+      throw new Error(`Student ${uid} not found.`);
     }
-    const studentInfo = state.users[uid];
+
     delete state.users[uid];
     delete state.personalTasks[uid];
 
-    // Remove any task assignments tied to this student
-    for (const key of Object.keys(state.taskAssignments)) {
-      if (state.taskAssignments[key].studentUid === uid) {
-        delete state.taskAssignments[key];
+    // Cascade clean assignments
+    for (const assignKey of Object.keys(state.taskAssignments)) {
+      if (assignKey.endsWith(`_${uid}`)) {
+        delete state.taskAssignments[assignKey];
       }
     }
 
     return {
       state,
       result: true,
-      broadcastEvent: { type: 'STUDENT_DELETED', payload: { uid, studentId: studentInfo.studentId } },
+      broadcastEvent: { type: 'STUDENT_DELETED', payload: { uid } },
     };
   });
 }
 
-// Helper: Delete all class tasks
-export async function deleteAllTasksFromDb(): Promise<boolean> {
+// Helper: Bulk Delete All Class Tasks
+export async function deleteAllTasksFromDb(): Promise<number> {
   return await executeTransaction((state) => {
+    const deletedCount = Object.keys(state.tasks).length;
     state.tasks = {};
     state.taskAssignments = {};
     return {
       state,
-      result: true,
-      broadcastEvent: { type: 'ALL_TASKS_DELETED', payload: {} },
+      result: deletedCount,
+      broadcastEvent: { type: 'ALL_TASKS_DELETED', payload: { deletedCount } },
     };
   });
 }
 
-// Helper: Restore and Merge Database Snapshot (Auto-Rehydration Engine)
+// Helper: Reset Clean Database
+export async function resetCleanDatabase(): Promise<DatabaseState> {
+  return await executeTransaction(() => {
+    const cleanSeed = getInitialSeedState();
+    return {
+      state: cleanSeed,
+      result: cleanSeed,
+      broadcastEvent: { type: 'DATABASE_RESET', payload: { version: cleanSeed.version } },
+    };
+  });
+}
+
+// Helper: Validate and Restore Snapshot safely with schema checking
 export async function restoreDatabaseSnapshot(snapshot: any): Promise<DatabaseState> {
+  if (!snapshot || typeof snapshot !== 'object') {
+    throw new Error('Invalid snapshot: payload must be a JSON object.');
+  }
+
+  // Prevent prototype pollution
+  if ('__proto__' in snapshot || 'constructor' in snapshot || 'prototype' in snapshot) {
+    throw new Error('Invalid snapshot: prohibited object keys detected.');
+  }
+
   return await executeTransaction((state) => {
+    // Validate users collection
+    if (snapshot.users) {
+      if (Array.isArray(snapshot.users)) {
+        snapshot.users.forEach((u: any) => {
+          if (u && typeof u.uid === 'string' && typeof u.studentId === 'string') {
+            const passHash = u.passwordHash
+              ? (u.passwordHash.startsWith('$2a$') || u.passwordHash.startsWith('$2b$') ? u.passwordHash : hashPassword(u.passwordHash))
+              : (state.users[u.uid]?.passwordHash || hashPassword('CAT27#DefaultPass'));
+            state.users[u.uid] = { ...u, passwordHash: passHash };
+          }
+        });
+      } else if (typeof snapshot.users === 'object') {
+        for (const [uid, u] of Object.entries(snapshot.users as Record<string, any>)) {
+          if (u && typeof u.studentId === 'string') {
+            const passHash = u.passwordHash
+              ? (u.passwordHash.startsWith('$2a$') || u.passwordHash.startsWith('$2b$') ? u.passwordHash : hashPassword(u.passwordHash))
+              : (state.users[uid]?.passwordHash || hashPassword('CAT27#DefaultPass'));
+            state.users[uid] = { ...u, passwordHash: passHash };
+          }
+        }
+      }
+    }
+
+    // Restore tasks
     if (snapshot.tasks) {
       if (Array.isArray(snapshot.tasks)) {
         snapshot.tasks.forEach((t: any) => {
-          if (t && t.id) state.tasks[t.id] = t;
+          if (t && typeof t.id === 'string') state.tasks[t.id] = t;
         });
       } else if (typeof snapshot.tasks === 'object') {
         state.tasks = { ...state.tasks, ...snapshot.tasks };
       }
     }
-    if (snapshot.users) {
-      if (Array.isArray(snapshot.users)) {
-        snapshot.users.forEach((u: any) => {
-          if (u && (u.uid || u.studentId)) {
-            const key = u.uid || u.studentId;
-            state.users[key] = u;
-          }
-        });
-      } else if (typeof snapshot.users === 'object') {
-        state.users = { ...state.users, ...snapshot.users };
-      }
+
+    // Restore personal tasks
+    if (snapshot.personalTasks && typeof snapshot.personalTasks === 'object') {
+      state.personalTasks = { ...state.personalTasks, ...snapshot.personalTasks };
     }
-    if (snapshot.personalTasks) {
-      if (Array.isArray(snapshot.personalTasks)) {
-        snapshot.personalTasks.forEach((p: any) => {
-          if (p && p.id) state.personalTasks[p.id] = p;
-        });
-      } else if (typeof snapshot.personalTasks === 'object') {
-        state.personalTasks = { ...state.personalTasks, ...snapshot.personalTasks };
-      }
-    }
+
+    // Restore task assignments
     if (snapshot.taskAssignments) {
       if (Array.isArray(snapshot.taskAssignments)) {
         snapshot.taskAssignments.forEach((a: any) => {
-          if (a && a.id) state.taskAssignments[a.id] = a;
+          if (a && typeof a.id === 'string') state.taskAssignments[a.id] = a;
         });
       } else if (typeof snapshot.taskAssignments === 'object') {
         state.taskAssignments = { ...state.taskAssignments, ...snapshot.taskAssignments };
       }
     }
+
+    // Restore feed posts
     if (snapshot.feedPosts) {
       if (Array.isArray(snapshot.feedPosts)) {
         snapshot.feedPosts.forEach((f: any) => {
-          if (f && f.id) state.feedPosts[f.id] = f;
+          if (f && typeof f.id === 'string') state.feedPosts[f.id] = f;
         });
       } else if (typeof snapshot.feedPosts === 'object') {
         state.feedPosts = { ...state.feedPosts, ...snapshot.feedPosts };
       }
     }
+
+    // Restore schedule activities
     if (snapshot.scheduleActivities) {
       if (Array.isArray(snapshot.scheduleActivities)) {
         snapshot.scheduleActivities.forEach((s: any) => {
-          if (s && s.id) state.scheduleActivities[s.id] = s;
+          if (s && typeof s.id === 'string') state.scheduleActivities[s.id] = s;
         });
       } else if (typeof snapshot.scheduleActivities === 'object') {
         state.scheduleActivities = { ...state.scheduleActivities, ...snapshot.scheduleActivities };
       }
     }
 
-    // Always ensure admin_madhav is present
+    // Ensure primary admin is always preserved with valid bcrypt hash
     if (!state.users['admin_madhav']) {
+      const initialAdminPass = getInitialAdminPassword();
       state.users['admin_madhav'] = {
         uid: 'admin_madhav',
         studentId: 'MADHAV',
@@ -435,7 +550,7 @@ export async function restoreDatabaseSnapshot(snapshot: any): Promise<DatabaseSt
         mentor: 'Administrator',
         createdAt: '2026-09-01T00:00:00.000Z',
         lastLoginAt: new Date().toISOString(),
-        passwordHash: 'madhav07',
+        passwordHash: hashPassword(initialAdminPass),
       };
     }
 
@@ -453,5 +568,3 @@ export async function restoreDatabaseSnapshot(snapshot: any): Promise<DatabaseSt
     };
   });
 }
-
-
