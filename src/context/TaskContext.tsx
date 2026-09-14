@@ -173,7 +173,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Database sync helper functions with Dual-Resilience Auto-Rehydration
   const fetchTasksFromDb = async () => {
     try {
-      const res = await fetch('/api/db/tasks', { credentials: 'include' });
+      const token = localStorage.getItem('prepdesk_session_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('/api/db/tasks', { headers, credentials: 'include' });
       if (res.ok) {
         const list = await res.json();
         if (Array.isArray(list)) {
@@ -187,22 +192,29 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch (e) {}
           }
 
-          if (list.length === 0 && cachedTasks.length > 0 && user?.role === 'admin') {
-            console.log(`[AutoRehydration] Server restarted empty. Rehydrating ${cachedTasks.length} tasks from shadow vault...`);
-            await fetch('/api/db/restore', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ tasks: cachedTasks }),
-            });
+          if (list.length === 0 && cachedTasks.length > 0) {
+            if (user?.role === 'admin') {
+              console.log(`[AutoRehydration] Server restarted empty. Rehydrating ${cachedTasks.length} tasks from shadow vault...`);
+              await fetch('/api/db/restore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+                credentials: 'include',
+                body: JSON.stringify({ tasks: cachedTasks }),
+              });
+            }
             setTasks(cachedTasks);
             localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(cachedTasks));
             return;
           }
 
-          setTasks(list);
-          localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(list));
-          localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: list, updatedAt: new Date().toISOString() }));
+          if (list.length > 0) {
+            setTasks(list);
+            localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify(list));
+            localStorage.setItem(SHADOW_VAULT_KEY, JSON.stringify({ tasks: list, updatedAt: new Date().toISOString() }));
+          } else {
+            setTasks([]);
+            localStorage.setItem(LOCAL_STORAGE_TASKS_KEY, JSON.stringify([]));
+          }
         }
       }
     } catch (e) {}

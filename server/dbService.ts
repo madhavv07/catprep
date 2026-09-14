@@ -91,7 +91,24 @@ export function getInitialSeedState(): DatabaseState {
       lastLoginAt: new Date().toISOString(),
       passwordHash: hashPassword(initialAdminPass),
     },
+    student_mad_mu0zlkcs: {
+      uid: 'student_mad_mu0zlkcs',
+      studentId: 'MAD',
+      email: 'mmgajjar07@gmail.com',
+      displayName: 'madhav',
+      role: 'student',
+      batchId: 'B-CAT2701',
+      mentor: 'Administrator',
+      createdAt: '2026-09-14T08:34:32.908Z',
+      lastLoginAt: new Date().toISOString(),
+      passwordHash: hashPassword('Student#Cat2027'),
+    },
   };
+
+  const tasks: Record<string, ClassTask> = {};
+  for (const t of CANONICAL_CAT_TASKS) {
+    tasks[t.id] = { ...t };
+  }
 
   const scheduleActivities: Record<string, ScheduleActivity> = {};
   for (const s of CANONICAL_CAT_SCHEDULE) {
@@ -102,7 +119,7 @@ export function getInitialSeedState(): DatabaseState {
     version: 1,
     lastModified: new Date().toISOString(),
     users,
-    tasks: {},
+    tasks,
     personalTasks: {},
     taskAssignments: {},
     scheduleActivities,
@@ -120,6 +137,7 @@ export function initDatabase(): DatabaseState {
     try {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       dbState = JSON.parse(raw);
+      let migrated = false;
 
       // Ensure primary admin is present
       if (!dbState?.users['admin_madhav']) {
@@ -139,8 +157,37 @@ export function initDatabase(): DatabaseState {
         commitStateSync(dbState!);
       }
 
+      // Ensure student mmgajjar07@gmail.com is present
+      if (!dbState?.users['student_mad_mu0zlkcs']) {
+        dbState!.users['student_mad_mu0zlkcs'] = {
+          uid: 'student_mad_mu0zlkcs',
+          studentId: 'MAD',
+          email: 'mmgajjar07@gmail.com',
+          displayName: 'madhav',
+          role: 'student',
+          batchId: 'B-CAT2701',
+          mentor: 'Administrator',
+          createdAt: '2026-09-14T08:34:32.908Z',
+          lastLoginAt: new Date().toISOString(),
+          passwordHash: hashPassword('Student#Cat2027'),
+        };
+        migrated = true;
+      } else if (dbState.users['student_mad_mu0zlkcs'].email !== 'mmgajjar07@gmail.com') {
+        dbState.users['student_mad_mu0zlkcs'].email = 'mmgajjar07@gmail.com';
+        migrated = true;
+      }
+
+      // Ensure canonical tasks are seeded if empty
+      if (!dbState?.tasks || Object.keys(dbState.tasks).length === 0) {
+        dbState!.tasks = {};
+        for (const t of CANONICAL_CAT_TASKS) {
+          dbState!.tasks[t.id] = { ...t };
+        }
+        migrated = true;
+        console.log(`[Database Init] Seeded ${CANONICAL_CAT_TASKS.length} canonical tasks into database.`);
+      }
+
       // Automatic migration hook: Upgrade any legacy plaintext password hashes to bcrypt in place
-      let migrated = false;
       for (const u of Object.values(dbState!.users)) {
         if (u.uid === 'admin_madhav' && (u.passwordHash === 'madhav07' || !u.passwordHash)) {
           u.passwordHash = hashPassword(getInitialAdminPassword());
@@ -152,7 +199,7 @@ export function initDatabase(): DatabaseState {
       }
       if (migrated) {
         commitStateSync(dbState!);
-        console.log('[Security Audit] Upgraded legacy plaintext passwords to high-entropy bcrypt hashes.');
+        console.log('[Security Audit] Upgraded and synchronized database state and credentials.');
       }
 
       return dbState!;
