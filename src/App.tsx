@@ -23,6 +23,7 @@ import { ParticleBackground } from './components/common/ParticleBackground';
 import { CommandPalette } from './components/common/CommandPalette';
 import { Breadcrumb } from './components/common/Breadcrumb';
 import { ForgotPasswordModal } from './components/auth/ForgotPasswordModal';
+import { TopNotch } from './components/common/TopNotch';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -158,13 +159,14 @@ const MainApp: React.FC = () => {
 
   // 1. Sleek loading screen while session is being verified
   if (loading) {
-    return <SplashScreen message="Connecting to PrepDesk CAT 2027..." />;
+    return <SplashScreen message="Connecting to CATDesk CAT 2027..." />;
   }
 
   // 2. Beautiful, modern, high-aesthetic sign-in experience
   if (!user) {
     return (
       <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-10 text-zinc-100 selection:bg-indigo-500 selection:text-white relative overflow-y-auto">
+        <TopNotch />
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-violet-500/10 rounded-full blur-[140px] pointer-events-none" />
@@ -260,12 +262,12 @@ const MainApp: React.FC = () => {
               <div className="relative glass-panel rounded-3xl p-7 sm:p-9 shadow-2xl space-y-6">
                 {/* Brand Logo & Title */}
                 <div className="text-left space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white flex items-center justify-center font-extrabold font-mono text-xl shadow-lg shadow-indigo-500/25 ring-1 ring-white/20">
-                    P
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white flex items-center justify-center font-black font-mono text-xl shadow-lg shadow-indigo-500/30 ring-1 ring-white/20">
+                    CD
                   </div>
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                      Sign In to Study Desk
+                      Sign In to CATDesk
                     </h2>
                     <p className="text-xs text-zinc-400 mt-1">
                       Enter your Student ID or Administrator credentials to continue
@@ -278,7 +280,7 @@ const MainApp: React.FC = () => {
                     <div className="leading-snug">
                       <span className="text-zinc-300">If you don't have access to it, mail </span>
                       <a
-                        href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
+                        href="mailto:mmgajjar07@gmail.com?subject=CATDesk%20CAT%202027%20Access%20Request"
                         className="text-indigo-400 font-extrabold hover:underline inline-flex items-center gap-0.5"
                       >
                         mmgajjar07@gmail.com
@@ -458,7 +460,7 @@ const MainApp: React.FC = () => {
                     If you don't have access to it:
                   </p>
                   <a
-                    href="mailto:mmgajjar07@gmail.com?subject=PrepDesk%20CAT%202027%20Access%20Request"
+                    href="mailto:mmgajjar07@gmail.com?subject=CATDesk%20CAT%202027%20Access%20Request"
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition group"
                   >
                     <Mail className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition" />
@@ -484,6 +486,7 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-indigo-500/30 selection:text-white">
+      <TopNotch />
       <ParticleBackground />
       <CommandPalette
         open={cmdPaletteOpen}

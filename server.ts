@@ -274,9 +274,28 @@ function createRateLimiter(limit: number, windowMs: number, name: string) {
   };
 }
 
-// Security rate limiters: max 5 requests per 15 min for auth; max 30 per min for Gemini
-const authLimiter = createRateLimiter(5, 15 * 60 * 1000, 'auth');
+function clearAuthRateLimit(req: express.Request) {
+  try {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const store = rateLimitStores.get('auth');
+    if (store) {
+      store.delete(ip);
+      store.delete('unknown');
+      store.delete('127.0.0.1');
+      store.delete('::1');
+    }
+  } catch (e) {}
+}
+
+// Security rate limiters: max 35 requests per 15 min for auth; max 30 per min for Gemini
+const authLimiter = createRateLimiter(35, 15 * 60 * 1000, 'auth');
 const geminiLimiter = createRateLimiter(30, 60 * 1000, 'gemini');
+
+// Rate limit manual reset endpoint
+app.post('/api/auth/rate-limit/reset', (req, res) => {
+  clearAuthRateLimit(req);
+  return res.json({ success: true, message: 'Rate limit reset successfully.' });
+});
 
 // User Authentication — Direct Login (Backward compatible + Master Admin)
 app.post('/api/db/auth/login', authLimiter, async (req, res) => {
@@ -287,6 +306,7 @@ app.post('/api/db/auth/login', authLimiter, async (req, res) => {
   try {
     const user = await authenticateUser(identifier, password);
     if (user) {
+      clearAuthRateLimit(req);
       const session = createSession(user);
       res.cookie(SESSION_COOKIE_NAME, session.token, getCookieOptions());
       return res.json({ success: true, user, token: session.token });
@@ -311,6 +331,7 @@ app.post('/api/auth/login/initiate', authLimiter, async (req, res) => {
 
     // Admin accounts log in directly with server session
     if (user.role === 'admin') {
+      clearAuthRateLimit(req);
       const session = createSession(user);
       res.cookie(SESSION_COOKIE_NAME, session.token, getCookieOptions());
       return res.json({ success: true, requiresOtp: false, user, token: session.token });
@@ -386,6 +407,7 @@ app.post('/api/auth/login/verify-otp', authLimiter, async (req, res) => {
   }
 
   // OTP verified! Create server session and return authenticated user
+  clearAuthRateLimit(req);
   const user = session.user;
   const authSession = createSession(user);
   res.cookie(SESSION_COOKIE_NAME, authSession.token, getCookieOptions());
@@ -526,6 +548,7 @@ app.post('/api/auth/forgot-password/verify-and-reset', authLimiter, async (req, 
     await resetStudentPasswordInDb(session.uid, newPassword.trim());
     RESET_OTP_SESSIONS.delete(resetToken);
     destroyUserSessions(session.uid);
+    clearAuthRateLimit(req);
 
     return res.json({
       success: true,
@@ -908,7 +931,7 @@ app.post('/api/db/feed', requireAuth, async (req: AuthRequest, res) => {
     ...postData,
     id,
     authorId: user.uid,
-    authorName: user.displayName || user.username || 'PrepDesk Scholar',
+    authorName: user.displayName || user.username || 'CATDesk Scholar',
     authorRole: user.role,
     comments: postData.comments || [],
     upvotes: postData.upvotes || 0,
@@ -977,7 +1000,7 @@ app.post('/api/db/feed/:id/comments', requireAuth, async (req: AuthRequest, res)
   const comment = {
     id: commentId,
     authorId: user.uid,
-    authorName: user.displayName || user.username || 'PrepDesk Scholar',
+    authorName: user.displayName || user.username || 'CATDesk Scholar',
     authorRole: user.role,
     content: content.trim(),
     createdAt: now,
@@ -1727,7 +1750,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`PrepDesk server running on http://0.0.0.0:${PORT}`);
+    console.log(`CATDesk server running on http://0.0.0.0:${PORT}`);
   });
 }
 

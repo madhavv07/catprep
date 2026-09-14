@@ -1,5 +1,5 @@
 /**
- * Date and deadline calculation utilities for PrepDesk
+ * Date and deadline calculation utilities for CATDesk
  */
 
 export interface DeadlineInfo {

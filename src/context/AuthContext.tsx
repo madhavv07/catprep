@@ -518,6 +518,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        try {
+          await fetch('/api/auth/rate-limit/reset', { method: 'POST', credentials: 'include' });
+        } catch (e) {}
         return { success: true, message: data.message };
       }
       return { success: false, error: data.error || 'Failed to reset password.' };

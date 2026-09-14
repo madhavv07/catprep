@@ -239,13 +239,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
       <div className="p-6 sm:p-8 rounded-3xl glass-panel flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-white/[0.08] border border-white/[0.12] text-emerald-400 flex items-center justify-center font-bold text-2xl tracking-tight shadow-sm shrink-0">
-            {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'P'}
+            {user?.displayName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'C'}
           </div>
 
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {user?.displayName || 'PrepDesk Scholar'}
+                {user?.displayName || 'CATDesk Scholar'}
               </h2>
               <span
                 className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
@@ -258,7 +258,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ setActiveView }) => {
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
-              ID: <strong className="text-zinc-200 font-mono">{user?.studentId || user?.displayName}</strong> &bull; {user?.email || 'student@prepdesk.edu'}
+              ID: <strong className="text-zinc-200 font-mono">{user?.studentId || user?.displayName}</strong> &bull; {user?.email || 'student@catdesk.online'}
             </p>
             <p className="text-[11px] text-zinc-500 mt-1 flex items-center gap-1.5 flex-wrap">
               <span>Member since {formatDatePretty(user?.createdAt || new Date().toISOString())}</span>

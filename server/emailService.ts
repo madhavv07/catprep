@@ -9,10 +9,10 @@ function getApiKey(): string {
 }
 
 function getPrimaryFrom(): string {
-  return process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+  return process.env.RESEND_FROM_EMAIL || "CATDesk <auth@catdesk.online>";
 }
 
-const FALLBACK_FROM = "PrepDesk <onboarding@resend.dev>";
+const FALLBACK_FROM = "CATDesk <onboarding@resend.dev>";
 
 interface SendOtpOptions {
   to: string;
@@ -27,7 +27,7 @@ function getSmtpConfig() {
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const user = (process.env.SMTP_USERNAME || process.env.SMTP_USER || "").trim();
   const pass = (process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "").trim();
-  const from = process.env.SMTP_FROM || process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+  const from = process.env.SMTP_FROM || process.env.RESEND_FROM_EMAIL || "CATDesk <auth@catdesk.online>";
 
   return {
     host,
@@ -158,8 +158,8 @@ export async function sendOtpEmail({
   const isReset = type === "FORGOT_PASSWORD";
   const title = isReset ? "Password Reset Verification" : "Sign-In Verification Code";
   const subtitle = isReset
-    ? "You requested to reset your PrepDesk account password."
-    : "Two-Factor verification required to access your PrepDesk account.";
+    ? "You requested to reset your CATDesk account password."
+    : "Two-Factor verification required to access your CATDesk account.";
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -178,7 +178,7 @@ export async function sendOtpEmail({
           <tr>
             <td style="padding: 32px 32px 20px 32px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, rgba(17, 20, 29, 0) 100%);">
               <div style="display: inline-block; padding: 6px 14px; background-color: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 9999px; font-size: 11px; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px;">
-                PrepDesk &bull; CAT 2027
+                CATDesk &bull; CAT 2027
               </div>
               <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">
                 ${title}
@@ -210,7 +210,7 @@ export async function sendOtpEmail({
           <tr>
             <td style="padding: 0 32px 32px 32px;">
               <p style="margin: 0; font-size: 12px; color: #71717a; line-height: 1.6; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
-                Never share this verification code with anyone. PrepDesk administrators will never ask for your code. If you did not initiate this request, your account may be compromised &mdash; please alert your mentor immediately.
+                Never share this verification code with anyone. CATDesk administrators will never ask for your code. If you did not initiate this request, your account may be compromised &mdash; please alert your mentor immediately.
               </p>
             </td>
           </tr>
@@ -219,7 +219,7 @@ export async function sendOtpEmail({
           <tr>
             <td style="padding: 16px 32px; background-color: rgba(0, 0, 0, 0.3); border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center;">
               <p style="margin: 0; font-size: 11px; color: #52525b;">
-                PrepDesk CAT 2027 Class Platform &bull; <a href="https://catdesk.online" style="color: #6366f1; text-decoration: none;">catdesk.online</a>
+                CATDesk CAT 2027 Class Platform &bull; <a href="https://catdesk.online" style="color: #6366f1; text-decoration: none;">catdesk.online</a>
               </p>
             </td>
           </tr>
@@ -231,7 +231,7 @@ export async function sendOtpEmail({
 </html>
   `;
 
-  const subject = `[${code}] ${title} — PrepDesk`;
+  const subject = `[${code}] ${title} — CATDesk`;
 
   // 1. If SMTP is configured, use SMTP first
   if (getSmtpConfig()) {

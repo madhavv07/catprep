@@ -95,7 +95,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `PrepDesk_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `CATDesk_Database_Backup_${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -181,7 +181,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
     if (!lastEnrolledStudent) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catdesk.online';
     const text = [
-      `🎓 PREPDESK CAT 2027 — Official Scholar Credentials`,
+      `🎓 CATDESK CAT 2027 — Official Scholar Credentials`,
       `----------------------------------------------------`,
       `Student ID:   ${lastEnrolledStudent.studentId}`,
       `Scholar Name: ${lastEnrolledStudent.displayName}`,
@@ -203,7 +203,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   const handleCopyCredentials = (s: UserProfile) => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://catdesk.online';
     const text = [
-      `🎓 PREPDESK CAT 2027 — Official Scholar Account`,
+      `🎓 CATDESK CAT 2027 — Official Scholar Account`,
       `----------------------------------------------------`,
       `Student ID:   ${s.studentId}`,
       `Scholar Name: ${s.displayName}`,

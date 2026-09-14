@@ -1,5 +1,5 @@
 {
-  "name": "PrepDesk",
+  "name": "CATDesk",
   "description": "Private study and preparation companion for class task management and VARC mastery.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

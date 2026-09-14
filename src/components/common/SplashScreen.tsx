@@ -5,7 +5,7 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
-  message = 'Initializing PrepDesk CAT 2027...',
+  message = 'Initializing CATDesk CAT 2027...',
 }) => {
   return (
     <div className="fixed inset-0 z-[99999] bg-[#08090c] flex flex-col items-center justify-center p-6 select-none overflow-hidden font-sans">
@@ -20,7 +20,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           <div className="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500/30 to-violet-400/20 blur-md opacity-70 group-hover:opacity-100 transition duration-500" />
           <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl glass-panel border border-white/[0.15] shadow-2xl flex items-center justify-center">
             <span className="text-2xl sm:text-3xl font-black font-mono tracking-tighter bg-gradient-to-br from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
-              PD
+              CD
             </span>
           </div>
         </div>
@@ -29,7 +29,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         <div className="text-center space-y-1.5">
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs font-mono font-bold tracking-[0.25em] text-white uppercase">
-              PrepDesk
+              CATDesk
             </span>
             <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
               CAT 2027

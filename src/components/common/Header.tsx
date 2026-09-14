@@ -75,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
       case 'admin-stats':
         return 'Admin — Batch Performance Analytics';
       default:
-        return 'PrepDesk';
+        return 'CATDesk';
     }
   };
 
@@ -112,13 +112,13 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
             onClick={() => setActiveView('dashboard')}
             className="flex items-center gap-2.5 cursor-pointer group"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 text-white flex items-center justify-center font-bold text-base shadow-[0_0_18px_rgba(99,102,241,0.35)] ring-1 ring-white/20 transition group-hover:scale-105">
-              P
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-600 text-white flex items-center justify-center font-black font-mono text-xs shadow-[0_0_18px_rgba(99,102,241,0.4)] ring-1 ring-white/20 transition group-hover:scale-105">
+              CD
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-white text-sm tracking-tight group-hover:text-indigo-300 transition">
-                  PrepDesk
+                  CATDesk
                 </span>
                 <span className="hidden sm:inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                   CAT 2027
@@ -298,7 +298,7 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
               <div className="absolute right-0 mt-2 w-56 glass-panel rounded-2xl p-2 z-50 animate-popover-spring shadow-2xl">
                 <div className="px-3 py-2 border-b border-white/[0.08]">
                   <p className="text-xs font-semibold text-white truncate">
-                    {user?.displayName || 'PrepDesk Scholar'}
+                    {user?.displayName || 'CATDesk Scholar'}
                   </p>
                   <p className="text-[11px] text-zinc-400 font-mono truncate">
                     {user?.studentId || user?.email}
