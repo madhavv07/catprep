@@ -228,14 +228,19 @@ app.post('/api/auth/login/initiate', async (req, res) => {
       studentName: user.displayName,
     });
 
+    const isDomainPending = (sendResult as any).usedFallback;
     return res.json({
       success: true,
       requiresOtp: true,
       sessionToken,
       maskedEmail: maskEmail(recipientEmail),
       emailDelivered: sendResult.success,
-      warning: sendResult.success ? undefined : (sendResult.error || 'Email delivery could not be completed.'),
-      devOtp: sendResult.success ? undefined : otpCode,
+      warning: !sendResult.success
+        ? (sendResult.error || 'Email delivery could not be completed.')
+        : isDomainPending
+        ? "Domain DNS verification is pending in Resend. Email was dispatched via fallback test sender (check Spam/Promotions folder)."
+        : undefined,
+      devOtp: (!sendResult.success || isDomainPending) ? otpCode : undefined,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
@@ -328,13 +333,18 @@ app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
     studentName: matchedUser.displayName,
   });
 
+  const isDomainPending = (sendResult as any).usedFallback;
   return res.json({
     success: true,
     resetToken,
     maskedEmail: maskEmail(recipientEmail),
     emailDelivered: sendResult.success,
-    warning: sendResult.success ? undefined : (sendResult.error || 'Email delivery could not be completed.'),
-    devOtp: sendResult.success ? undefined : otpCode,
+    warning: !sendResult.success
+      ? (sendResult.error || 'Email delivery could not be completed.')
+      : isDomainPending
+      ? "Domain DNS verification is pending in Resend. Email was dispatched via fallback test sender (check Spam/Promotions folder)."
+      : undefined,
+    devOtp: (!sendResult.success || isDomainPending) ? otpCode : undefined,
   });
 });
 

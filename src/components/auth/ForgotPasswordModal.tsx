@@ -66,6 +66,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
         setMaskedEmail(res.maskedEmail || "your registered email");
         setOtpWarning(res.warning || null);
         setDevOtp(res.devOtp || null);
+        if (res.devOtp) setOtpCode(res.devOtp);
         setNewPassword(generateBreachFreePassword());
         setStep("VERIFY");
       } else {

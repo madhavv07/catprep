@@ -181,6 +181,7 @@ export async function sendOtpEmail({
   const subject = `[${code}] ${title} — PrepDesk`;
 
   const primaryFrom = getPrimaryFrom();
+  let usedFallback = false;
 
   // 1. Try sending with the official custom domain (auth@catdesk.online)
   let result = await callResendApi(primaryFrom, to, subject, htmlContent);
@@ -189,7 +190,11 @@ export async function sendOtpEmail({
   if (!result.success && result.notVerified) {
     console.log(`[Resend Notice] Custom domain '${primaryFrom}' pending verification, retrying via fallback sender '${FALLBACK_FROM}'`);
     result = await callResendApi(FALLBACK_FROM, to, subject, htmlContent);
+    usedFallback = true;
   }
 
-  return result;
+  return {
+    ...result,
+    usedFallback,
+  };
 }
