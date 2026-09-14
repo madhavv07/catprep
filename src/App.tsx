@@ -41,6 +41,7 @@ import {
   BookOpen,
   Mail,
   KeyRound,
+  AlertTriangle,
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
@@ -64,6 +65,8 @@ const MainApp: React.FC = () => {
   const [otpSessionToken, setOtpSessionToken] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [otpWarning, setOtpWarning] = useState<string | null>(null);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   // ✅ CRITICAL FIX: Reset view to dashboard whenever user identity changes
@@ -102,6 +105,8 @@ const MainApp: React.FC = () => {
       setLoginStep('CREDENTIALS');
       setOtpSessionToken('');
       setOtpCode('');
+      setOtpWarning(null);
+      setDevOtp(null);
     }
   }, [user]);
 
@@ -117,7 +122,9 @@ const MainApp: React.FC = () => {
           if (result.requiresOtp) {
             setOtpSessionToken(result.sessionToken || '');
             setMaskedEmail(result.maskedEmail || 'your registered email');
-            setOtpCode('');
+            setOtpWarning(result.warning || null);
+            setDevOtp(result.devOtp || null);
+            setOtpCode(result.devOtp || '');
             setLoginStep('OTP');
           }
         } else {
@@ -360,6 +367,23 @@ const MainApp: React.FC = () => {
                           </span>
                         </div>
                       </div>
+
+                      {otpWarning && (
+                        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 space-y-1">
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span>Email Delivery Notice</span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400 leading-relaxed">
+                            {otpWarning}
+                          </p>
+                          {devOtp && (
+                            <p className="text-[11px] text-amber-300 font-mono mt-1 pt-1 border-t border-amber-500/20">
+                              Instant Test Code: <strong className="text-white text-xs">{devOtp}</strong>
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       <div>
                         <label htmlFor="otp" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">

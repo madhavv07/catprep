@@ -1,10 +1,11 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   X,
   Mail,
   Lock,
   KeyRound,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   ArrowRight,
   Eye,
@@ -39,6 +40,8 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [otpWarning, setOtpWarning] = useState<string | null>(null);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -46,6 +49,8 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+    setOtpWarning(null);
+    setDevOtp(null);
 
     const cleanId = identifier.trim();
     if (!cleanId) {
@@ -59,6 +64,8 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       if (res.success && res.resetToken) {
         setResetToken(res.resetToken);
         setMaskedEmail(res.maskedEmail || "your registered email");
+        setOtpWarning(res.warning || null);
+        setDevOtp(res.devOtp || null);
         setNewPassword(generateBreachFreePassword());
         setStep("VERIFY");
       } else {
@@ -115,6 +122,8 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setNewPassword("");
     setError(null);
     setSuccessMsg(null);
+    setOtpWarning(null);
+    setDevOtp(null);
     onClose();
   };
 
@@ -215,6 +224,23 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
         {/* Step 2: Verify OTP and Set New Password */}
         {step === "VERIFY" && (
           <form onSubmit={handleVerifyAndReset} className="space-y-4">
+            {otpWarning && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>Email Delivery Notice</span>
+                </div>
+                <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  {otpWarning}
+                </p>
+                {devOtp && (
+                  <p className="text-[11px] text-amber-300 font-mono mt-1 pt-1 border-t border-amber-500/20">
+                    Instant Test Code: <strong className="text-white text-xs">{devOtp}</strong>
+                  </p>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                 6-Digit Verification Code

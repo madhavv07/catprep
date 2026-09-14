@@ -1,7 +1,16 @@
 import https from "https";
+import dotenv from "dotenv";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-const PRIMARY_FROM = process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+dotenv.config();
+
+function getApiKey(): string {
+  return (process.env.RESEND_API_KEY || "").trim();
+}
+
+function getPrimaryFrom(): string {
+  return process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+}
+
 const FALLBACK_FROM = "PrepDesk <onboarding@resend.dev>";
 
 interface SendOtpOptions {
@@ -17,6 +26,15 @@ function callResendApi(
   subject: string,
   html: string
 ): Promise<{ success: boolean; error?: string; id?: string; notVerified?: boolean }> {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    console.error("[Resend Error]: RESEND_API_KEY environment variable is not configured.");
+    return Promise.resolve({
+      success: false,
+      error: "RESEND_API_KEY environment variable is missing.",
+    });
+  }
+
   return new Promise((resolve) => {
     const payload = JSON.stringify({
       from,
@@ -31,7 +49,7 @@ function callResendApi(
         path: "/emails",
         method: "POST",
         headers: {
-          Authorization: `Bearer ${RESEND_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload),
         },
@@ -162,12 +180,14 @@ export async function sendOtpEmail({
 
   const subject = `[${code}] ${title} — PrepDesk`;
 
+  const primaryFrom = getPrimaryFrom();
+
   // 1. Try sending with the official custom domain (auth@catdesk.online)
-  let result = await callResendApi(PRIMARY_FROM, to, subject, htmlContent);
+  let result = await callResendApi(primaryFrom, to, subject, htmlContent);
 
   // 2. If domain DNS is pending verification in Resend, fall back to onboarding sender seamlessly
   if (!result.success && result.notVerified) {
-    console.log(`[Resend Notice] Custom domain '${PRIMARY_FROM}' pending verification, retrying via fallback sender '${FALLBACK_FROM}'`);
+    console.log(`[Resend Notice] Custom domain '${primaryFrom}' pending verification, retrying via fallback sender '${FALLBACK_FROM}'`);
     result = await callResendApi(FALLBACK_FROM, to, subject, htmlContent);
   }
 

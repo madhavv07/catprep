@@ -39,6 +39,9 @@ interface AuthContextType {
     requiresOtp?: boolean;
     sessionToken?: string;
     maskedEmail?: string;
+    emailDelivered?: boolean;
+    warning?: string;
+    devOtp?: string;
     error?: string;
   }>;
   verifyLoginOtp: (
@@ -47,7 +50,15 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; error?: string }>;
   requestPasswordResetOtp: (
     identifier: string
-  ) => Promise<{ success: boolean; resetToken?: string; maskedEmail?: string; error?: string }>;
+  ) => Promise<{
+    success: boolean;
+    resetToken?: string;
+    maskedEmail?: string;
+    emailDelivered?: boolean;
+    warning?: string;
+    devOtp?: string;
+    error?: string;
+  }>;
   verifyAndResetPassword: (
     resetToken: string,
     otp: string,
@@ -426,6 +437,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           requiresOtp: true,
           sessionToken: data.sessionToken,
           maskedEmail: data.maskedEmail,
+          emailDelivered: data.emailDelivered,
+          warning: data.warning,
+          devOtp: data.devOtp,
         };
       }
       return { success: false, error: data.error || 'Invalid credentials.' };
@@ -464,7 +478,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Request Password Reset OTP
   const requestPasswordResetOtp = async (
     identifier: string
-  ): Promise<{ success: boolean; resetToken?: string; maskedEmail?: string; error?: string }> => {
+  ): Promise<{
+    success: boolean;
+    resetToken?: string;
+    maskedEmail?: string;
+    emailDelivered?: boolean;
+    warning?: string;
+    devOtp?: string;
+    error?: string;
+  }> => {
     try {
       const res = await fetch('/api/auth/forgot-password/request-otp', {
         method: 'POST',
@@ -477,6 +499,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           success: true,
           resetToken: data.resetToken,
           maskedEmail: data.maskedEmail,
+          emailDelivered: data.emailDelivered,
+          warning: data.warning,
+          devOtp: data.devOtp,
         };
       }
       return { success: false, error: data.error || 'Failed to request reset OTP.' };

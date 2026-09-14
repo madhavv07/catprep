@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -217,7 +218,7 @@ app.post('/api/auth/login/initiate', async (req, res) => {
       user,
     });
 
-    const recipientEmail = user.email || 'madhavgajjar7@gmail.com';
+    const recipientEmail = (user.email && !user.email.endsWith('@prepdesk.edu')) ? user.email : 'madhavgajjar7@gmail.com';
 
     // Dispatch OTP email via Resend
     const sendResult = await sendOtpEmail({
@@ -233,7 +234,8 @@ app.post('/api/auth/login/initiate', async (req, res) => {
       sessionToken,
       maskedEmail: maskEmail(recipientEmail),
       emailDelivered: sendResult.success,
-      warning: sendResult.success ? undefined : sendResult.error,
+      warning: sendResult.success ? undefined : (sendResult.error || 'Email delivery could not be completed.'),
+      devOtp: sendResult.success ? undefined : otpCode,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
@@ -317,8 +319,10 @@ app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
     displayName: matchedUser.displayName,
   });
 
+  const recipientEmail = (matchedUser.email && !matchedUser.email.endsWith('@prepdesk.edu')) ? matchedUser.email : 'madhavgajjar7@gmail.com';
+
   const sendResult = await sendOtpEmail({
-    to: matchedUser.email,
+    to: recipientEmail,
     code: otpCode,
     type: 'FORGOT_PASSWORD',
     studentName: matchedUser.displayName,
@@ -327,9 +331,10 @@ app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
   return res.json({
     success: true,
     resetToken,
-    maskedEmail: maskEmail(matchedUser.email),
+    maskedEmail: maskEmail(recipientEmail),
     emailDelivered: sendResult.success,
-    warning: sendResult.success ? undefined : sendResult.error,
+    warning: sendResult.success ? undefined : (sendResult.error || 'Email delivery could not be completed.'),
+    devOtp: sendResult.success ? undefined : otpCode,
   });
 });
 
