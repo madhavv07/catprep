@@ -1,11 +1,13 @@
 import express from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import { createServer as createViteServer } from 'vite';
 import { CAT_VARC_DICTIONARY, generateSmartFallbackWord } from './server/varcDictionaryFallback.ts';
 import { lookupWordComprehensive } from './server/lexicalService.ts';
+import { sendOtpEmail } from './server/emailService.ts';
 import { PROTECTED_TEST_KEYS } from './src/data/seedData.ts';
 import {
   initDatabase,
@@ -130,7 +132,47 @@ app.get('/api/realtime/stream', (req, res) => {
   registerSseClient(res);
 });
 
-// User Authentication (Admin madhav / madhav07 + Student IDs)
+// -------------------------------------------------------------
+// In-Memory OTP Registries for Login 2FA and Self-Service Reset
+// -------------------------------------------------------------
+interface LoginOtpSession {
+  code: string;
+  expiresAt: number;
+  attempts: number;
+  user: any;
+}
+const LOGIN_OTP_SESSIONS = new Map<string, LoginOtpSession>();
+
+interface ResetOtpSession {
+  code: string;
+  expiresAt: number;
+  attempts: number;
+  uid: string;
+  studentId: string;
+  email: string;
+  displayName: string;
+}
+const RESET_OTP_SESSIONS = new Map<string, ResetOtpSession>();
+
+// Periodically clean up expired OTP sessions
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, session] of LOGIN_OTP_SESSIONS.entries()) {
+    if (now > session.expiresAt) LOGIN_OTP_SESSIONS.delete(key);
+  }
+  for (const [key, session] of RESET_OTP_SESSIONS.entries()) {
+    if (now > session.expiresAt) RESET_OTP_SESSIONS.delete(key);
+  }
+}, 60 * 1000);
+
+function maskEmail(email: string): string {
+  if (!email || !email.includes('@')) return email || '';
+  const [user, domain] = email.split('@');
+  if (user.length <= 2) return `${user[0]}*@${domain}`;
+  return `${user[0]}${'*'.repeat(Math.max(1, user.length - 2))}${user[user.length - 1]}@${domain}`;
+}
+
+// User Authentication — Direct Login (Backward compatible + Master Admin)
 app.post('/api/db/auth/login', async (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -144,6 +186,210 @@ app.post('/api/db/auth/login', async (req, res) => {
     return res.status(401).json({ success: false, error: 'Invalid Student ID / Username or Password.' });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
+  }
+});
+
+// Step 1: Initiate Student Login (Sends OTP to enrolled student email)
+app.post('/api/auth/login/initiate', async (req, res) => {
+  const { identifier, password } = req.body;
+  if (!identifier || !password) {
+    return res.status(400).json({ success: false, error: 'Student ID and password are required.' });
+  }
+  try {
+    const user = await authenticateUser(identifier, password);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Invalid Student ID / Username or Password.' });
+    }
+
+    // Admin accounts bypass 2FA for convenience
+    if (user.role === 'admin') {
+      return res.json({ success: true, requiresOtp: false, user });
+    }
+
+    // Student account — generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const sessionToken = crypto.randomUUID();
+
+    LOGIN_OTP_SESSIONS.set(sessionToken, {
+      code: otpCode,
+      expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+      attempts: 0,
+      user,
+    });
+
+    const recipientEmail = user.email || 'madhavgajjar7@gmail.com';
+
+    // Dispatch OTP email via Resend
+    const sendResult = await sendOtpEmail({
+      to: recipientEmail,
+      code: otpCode,
+      type: 'LOGIN_2FA',
+      studentName: user.displayName,
+    });
+
+    return res.json({
+      success: true,
+      requiresOtp: true,
+      sessionToken,
+      maskedEmail: maskEmail(recipientEmail),
+      emailDelivered: sendResult.success,
+      warning: sendResult.success ? undefined : sendResult.error,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
+  }
+});
+
+// Step 2: Verify Login OTP
+app.post('/api/auth/login/verify-otp', async (req, res) => {
+  const { sessionToken, otp } = req.body;
+  if (!sessionToken || !otp) {
+    return res.status(400).json({ success: false, error: 'Verification session token and OTP code are required.' });
+  }
+
+  const session = LOGIN_OTP_SESSIONS.get(sessionToken);
+  if (!session) {
+    return res.status(400).json({ success: false, error: 'Verification session expired. Please sign in again.' });
+  }
+
+  if (Date.now() > session.expiresAt) {
+    LOGIN_OTP_SESSIONS.delete(sessionToken);
+    return res.status(400).json({ success: false, error: 'OTP has expired (10 min limit). Please sign in again.' });
+  }
+
+  if (session.code !== otp.trim()) {
+    session.attempts++;
+    if (session.attempts >= 5) {
+      LOGIN_OTP_SESSIONS.delete(sessionToken);
+      return res.status(403).json({ success: false, error: 'Too many invalid attempts. Session terminated.' });
+    }
+    return res.status(401).json({
+      success: false,
+      error: `Invalid verification code. ${5 - session.attempts} attempt(s) remaining.`,
+    });
+  }
+
+  // OTP verified! Return authenticated user session
+  LOGIN_OTP_SESSIONS.delete(sessionToken);
+  return res.json({ success: true, user: session.user });
+});
+
+// Forgot Password Step 1: Request Reset OTP
+app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
+  const { identifier } = req.body;
+  if (!identifier || typeof identifier !== 'string' || !identifier.trim()) {
+    return res.status(400).json({ success: false, error: 'Please enter your Student ID or registered email.' });
+  }
+
+  const cleanId = identifier.trim().toLowerCase();
+  const snapshot = getDatabaseSnapshot();
+  let matchedUser: any = null;
+
+  for (const uid of Object.keys(snapshot.users)) {
+    const u = snapshot.users[uid];
+    if (
+      u.studentId.toLowerCase() === cleanId ||
+      u.email.toLowerCase() === cleanId ||
+      uid.toLowerCase() === cleanId
+    ) {
+      matchedUser = u;
+      break;
+    }
+  }
+
+  if (!matchedUser) {
+    return res.status(404).json({
+      success: false,
+      error: 'No account found matching that Student ID or Email address.',
+    });
+  }
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetToken = crypto.randomUUID();
+
+  RESET_OTP_SESSIONS.set(resetToken, {
+    code: otpCode,
+    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    attempts: 0,
+    uid: matchedUser.uid,
+    studentId: matchedUser.studentId,
+    email: matchedUser.email,
+    displayName: matchedUser.displayName,
+  });
+
+  const sendResult = await sendOtpEmail({
+    to: matchedUser.email,
+    code: otpCode,
+    type: 'FORGOT_PASSWORD',
+    studentName: matchedUser.displayName,
+  });
+
+  return res.json({
+    success: true,
+    resetToken,
+    maskedEmail: maskEmail(matchedUser.email),
+    emailDelivered: sendResult.success,
+    warning: sendResult.success ? undefined : sendResult.error,
+  });
+});
+
+// Forgot Password Step 2: Verify OTP and Set New Password (Syncs with Admin Vault)
+app.post('/api/auth/forgot-password/verify-and-reset', async (req, res) => {
+  const { resetToken, otp, newPassword } = req.body;
+  if (!resetToken || !otp || !newPassword) {
+    return res.status(400).json({
+      success: false,
+      error: 'Reset token, OTP code, and new password are required.',
+    });
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.trim().length < 6) {
+    return res.status(400).json({
+      success: false,
+      error: 'New password must be at least 6 characters long.',
+    });
+  }
+
+  const session = RESET_OTP_SESSIONS.get(resetToken);
+  if (!session) {
+    return res.status(400).json({
+      success: false,
+      error: 'Password reset session expired or invalid. Please request a new OTP.',
+    });
+  }
+
+  if (Date.now() > session.expiresAt) {
+    RESET_OTP_SESSIONS.delete(resetToken);
+    return res.status(400).json({
+      success: false,
+      error: 'OTP code has expired. Please request a new code.',
+    });
+  }
+
+  if (session.code !== otp.trim()) {
+    session.attempts++;
+    if (session.attempts >= 5) {
+      RESET_OTP_SESSIONS.delete(resetToken);
+      return res.status(403).json({ success: false, error: 'Too many invalid attempts. Session terminated.' });
+    }
+    return res.status(401).json({
+      success: false,
+      error: `Invalid OTP code. ${5 - session.attempts} attempt(s) remaining.`,
+    });
+  }
+
+  // OTP verified! Update student password in DB and broadcast via SSE
+  try {
+    await resetStudentPasswordInDb(session.uid, newPassword.trim());
+    RESET_OTP_SESSIONS.delete(resetToken);
+
+    return res.json({
+      success: true,
+      message: `Password updated successfully for ${session.displayName}. You can now sign in with your new password.`,
+      studentId: session.studentId,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Failed to update password.' });
   }
 });
 
@@ -161,12 +407,12 @@ app.get('/api/db/students', (req, res) => {
 
 app.post('/api/db/students/enroll', async (req, res) => {
   const displayName = req.body.displayName || req.body.name;
-  const { studentId, password, batchId } = req.body;
+  const { studentId, password, batchId, email } = req.body;
   if (!studentId || !displayName || !password) {
     return res.status(400).json({ success: false, error: 'studentId, displayName, and password are required' });
   }
   try {
-    const profile = await enrollStudentInDb({ studentId, displayName, password, batchId });
+    const profile = await enrollStudentInDb({ studentId, displayName, password, email, batchId });
     return res.json({ success: true, student: profile });
   } catch (err: any) {
     return res.status(400).json({ success: false, error: err.message || 'Enrollment failed' });

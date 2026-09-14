@@ -31,11 +31,34 @@ interface AuthContextType {
     identifier: string,
     passwordInput: string
   ) => Promise<{ success: boolean; error?: string }>;
+  initiateLogin: (
+    identifier: string,
+    passwordInput: string
+  ) => Promise<{
+    success: boolean;
+    requiresOtp?: boolean;
+    sessionToken?: string;
+    maskedEmail?: string;
+    error?: string;
+  }>;
+  verifyLoginOtp: (
+    sessionToken: string,
+    otp: string
+  ) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordResetOtp: (
+    identifier: string
+  ) => Promise<{ success: boolean; resetToken?: string; maskedEmail?: string; error?: string }>;
+  verifyAndResetPassword: (
+    resetToken: string,
+    otp: string,
+    newPassword: string
+  ) => Promise<{ success: boolean; message?: string; error?: string }>;
   signOut: () => Promise<void>;
   enrollStudent: (payload: {
     studentId: string;
     displayName: string;
     password?: string;
+    email?: string;
     batchId?: string;
     mentor?: string;
   }) => Promise<{ success: boolean; error?: string }>;
@@ -361,11 +384,135 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
   };
 
+  // 2-Step Login: Step 1 (Credentials check -> sends OTP for students)
+  const initiateLogin = async (
+    identifier: string,
+    passwordInput: string
+  ): Promise<{
+    success: boolean;
+    requiresOtp?: boolean;
+    sessionToken?: string;
+    maskedEmail?: string;
+    error?: string;
+  }> => {
+    const rawClean = identifier.trim().toLowerCase();
+    const cleanPass = passwordInput.trim();
+
+    if (!rawClean || !cleanPass) {
+      return { success: false, error: 'Please enter both Student ID / Username and password.' };
+    }
+
+    try {
+      const res = await fetch('/api/auth/login/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: rawClean, password: cleanPass }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (!data.requiresOtp && data.user) {
+          // Direct login (Admin)
+          setUser(data.user);
+          localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(data.user));
+          try {
+            await setDoc(doc(db, 'users', data.user.uid), data.user, { merge: true });
+          } catch (e) {}
+          return { success: true, requiresOtp: false };
+        }
+        // Student requires 2FA OTP
+        return {
+          success: true,
+          requiresOtp: true,
+          sessionToken: data.sessionToken,
+          maskedEmail: data.maskedEmail,
+        };
+      }
+      return { success: false, error: data.error || 'Invalid credentials.' };
+    } catch (e: any) {
+      return await signInWithCredentials(identifier, passwordInput);
+    }
+  };
+
+  // 2-Step Login: Step 2 (Verify OTP code)
+  const verifyLoginOtp = async (
+    sessionToken: string,
+    otp: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/login/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken, otp }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        setUser(data.user);
+        localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, JSON.stringify(data.user));
+        try {
+          await setDoc(doc(db, 'users', data.user.uid), data.user, { merge: true });
+        } catch (e) {}
+        return { success: true };
+      }
+      return { success: false, error: data.error || 'Invalid verification code.' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Verification failed.' };
+    }
+  };
+
+  // Request Password Reset OTP
+  const requestPasswordResetOtp = async (
+    identifier: string
+  ): Promise<{ success: boolean; resetToken?: string; maskedEmail?: string; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/forgot-password/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: identifier.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return {
+          success: true,
+          resetToken: data.resetToken,
+          maskedEmail: data.maskedEmail,
+        };
+      }
+      return { success: false, error: data.error || 'Failed to request reset OTP.' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error.' };
+    }
+  };
+
+  // Verify OTP and Reset Password
+  const verifyAndResetPassword = async (
+    resetToken: string,
+    otp: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const res = await fetch('/api/auth/forgot-password/verify-and-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetToken, otp: otp.trim(), newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return { success: true, message: data.message };
+      }
+      return { success: false, error: data.error || 'Failed to reset password.' };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Network error.' };
+    }
+  };
+
   // Enroll new student (Admin only)
   const enrollStudent = async (payload: {
     studentId: string;
     displayName: string;
-    password: string;
+    password?: string;
+    email?: string;
     batchId?: string;
     mentor?: string;
   }): Promise<{ success: boolean; error?: string }> => {
@@ -375,10 +522,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const cleanId = payload.studentId.trim().toUpperCase();
     const cleanName = payload.displayName.trim();
-    const cleanPass = payload.password.trim();
+    const cleanPass = payload.password ? payload.password.trim() : 'CAT27#ChangeMe';
+    const cleanEmail = payload.email?.trim().toLowerCase();
 
-    if (!cleanId || !cleanName || !cleanPass) {
-      return { success: false, error: 'Student ID, Name, and initial Password are required.' };
+    if (!cleanId || !cleanName) {
+      return { success: false, error: 'Student ID and Name are required.' };
     }
 
     // 1. Persist to live dynamic database
@@ -390,6 +538,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           studentId: cleanId,
           displayName: cleanName,
           password: cleanPass,
+          email: cleanEmail,
           batchId: payload.batchId || 'B-CAT2701',
         }),
       });
@@ -521,6 +670,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === 'admin',
         students,
         signInWithCredentials,
+        initiateLogin,
+        verifyLoginOtp,
+        requestPasswordResetOtp,
+        verifyAndResetPassword,
         signOut,
         enrollStudent,
         deleteStudent,

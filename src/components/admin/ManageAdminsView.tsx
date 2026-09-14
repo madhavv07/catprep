@@ -24,6 +24,7 @@ import {
   UploadCloud,
   Database,
   HardDrive,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ActiveView, UserProfile } from '../../types';
@@ -48,6 +49,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
   // Create student form state
   const [studentId, setStudentId] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [password, setPassword] = useState(() => generateBreachFreePassword());
   const [batchId, setBatchId] = useState('B-CAT2701');
   const [mentor, setMentor] = useState('Administrator');
@@ -190,6 +192,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       `----------------------------------------------------`,
       `Student ID:   ${s.studentId}`,
       `Scholar Name: ${s.displayName}`,
+      `Email:        ${s.email || 'None'}`,
       `Password:     ${pass}`,
       `Batch:        ${s.batchId || 'B-CAT2701'}`,
       `Login Portal: ${origin}`,
@@ -258,6 +261,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
 
     const cleanId = studentId.trim().toUpperCase();
     const cleanName = displayName.trim();
+    const cleanEmail = studentEmail.trim().toLowerCase();
     const cleanPass = password.trim();
 
     if (!cleanId) {
@@ -266,6 +270,10 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
     }
     if (!cleanName) {
       setError('Please enter the student\'s full name.');
+      return;
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid student email address for OTP verification.');
       return;
     }
     if (!cleanPass || cleanPass.length < 6) {
@@ -278,6 +286,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
       const res = await enrollStudent({
         studentId: cleanId,
         displayName: cleanName,
+        email: cleanEmail,
         password: cleanPass,
         batchId,
         mentor,
@@ -287,6 +296,7 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
         setSuccess(`Successfully enrolled student ${cleanName} (${cleanId})!`);
         setStudentId('');
         setDisplayName('');
+        setStudentEmail('');
         setPassword('');
       } else {
         setError(res.error || 'Failed to enroll student.');
@@ -396,6 +406,26 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                Student Email Address (for 2FA OTP & Reset)
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) => setStudentEmail(e.target.value)}
+                  placeholder="e.g. aditi.cat27@gmail.com"
+                  className="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+              <span className="text-[10px] text-zinc-500 mt-1 block">
+                Verification codes and password recovery links will be sent to this email.
+              </span>
             </div>
 
             <div>
@@ -526,6 +556,12 @@ export const ManageAdminsView: React.FC<ManageAdminsViewProps> = () => {
                           <span className="text-[11px] text-zinc-500 font-mono">
                             ({s.batchId || 'B-CAT2701'})
                           </span>
+                          {s.email && (
+                            <span className="text-[11px] text-zinc-400 font-mono flex items-center gap-1 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.06]">
+                              <Mail className="w-3 h-3 text-indigo-400" />
+                              <span>{s.email}</span>
+                            </span>
+                          )}
                         </div>
 
                         {/* Password Display Row */}

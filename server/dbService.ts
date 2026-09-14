@@ -241,12 +241,14 @@ export async function enrollStudentInDb(payload: {
   studentId: string;
   displayName: string;
   password: string;
+  email?: string;
   batchId?: string;
 }): Promise<UserProfile> {
   const cleanId = payload.studentId.trim().toUpperCase();
   const cleanName = payload.displayName.trim();
   const cleanPass = payload.password.trim();
   const batchId = payload.batchId || 'B-CAT2701';
+  const cleanEmail = payload.email?.trim().toLowerCase() || `${cleanId.toLowerCase()}@prepdesk.edu`;
 
   return await executeTransaction((state) => {
     // Consistency check: unique student ID
@@ -257,12 +259,11 @@ export async function enrollStudentInDb(payload: {
     }
 
     const uid = `student_${cleanId.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now().toString(36)}`;
-    const email = `${cleanId.toLowerCase()}@prepdesk.edu`;
 
     const newStudent = {
       uid,
       studentId: cleanId,
-      email,
+      email: cleanEmail,
       displayName: cleanName,
       role: 'student' as const,
       batchId,

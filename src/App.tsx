@@ -22,6 +22,7 @@ import { SplashScreen } from './components/common/SplashScreen';
 import { ParticleBackground } from './components/common/ParticleBackground';
 import { CommandPalette } from './components/common/CommandPalette';
 import { Breadcrumb } from './components/common/Breadcrumb';
+import { ForgotPasswordModal } from './components/auth/ForgotPasswordModal';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -31,6 +32,7 @@ import {
   EyeOff,
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   Zap,
   Target,
@@ -38,10 +40,11 @@ import {
   CheckCircle2,
   BookOpen,
   Mail,
+  KeyRound,
 } from 'lucide-react';
 
 const MainApp: React.FC = () => {
-  const { user, loading, signInWithCredentials, isAdmin } = useAuth();
+  const { user, loading, signInWithCredentials, initiateLogin, verifyLoginOtp, isAdmin } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
@@ -55,6 +58,13 @@ const MainApp: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // 2FA OTP & Forgot Password state
+  const [loginStep, setLoginStep] = useState<'CREDENTIALS' | 'OTP'>('CREDENTIALS');
+  const [otpSessionToken, setOtpSessionToken] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   // ✅ CRITICAL FIX: Reset view to dashboard whenever user identity changes
   // This prevents admin views from persisting when a student logs in after admin
@@ -89,6 +99,9 @@ const MainApp: React.FC = () => {
       setSubmitting(false);
       setLoginPassword('');
       setLoginError(null);
+      setLoginStep('CREDENTIALS');
+      setOtpSessionToken('');
+      setOtpCode('');
     }
   }, [user]);
 
@@ -96,15 +109,37 @@ const MainApp: React.FC = () => {
     e.preventDefault();
     setLoginError(null);
     setSubmitting(true);
-    try {
-      const result = await signInWithCredentials(loginUsername, loginPassword);
-      if (!result.success) {
-        setLoginError(result.error || 'Invalid credentials. Please verify your Student ID and Password.');
+
+    if (loginStep === 'CREDENTIALS') {
+      try {
+        const result = await initiateLogin(loginUsername, loginPassword);
+        if (result.success) {
+          if (result.requiresOtp) {
+            setOtpSessionToken(result.sessionToken || '');
+            setMaskedEmail(result.maskedEmail || 'your registered email');
+            setOtpCode('');
+            setLoginStep('OTP');
+          }
+        } else {
+          setLoginError(result.error || 'Invalid credentials. Please verify your Student ID and Password.');
+        }
+      } catch (err: any) {
+        setLoginError(err?.message || 'Login failed. Please verify credentials.');
+      } finally {
+        setSubmitting(false);
       }
-    } catch (err: any) {
-      setLoginError(err?.message || 'Login failed. Please verify credentials.');
-    } finally {
-      setSubmitting(false);
+    } else {
+      // Step 2: Verify OTP
+      try {
+        const result = await verifyLoginOtp(otpSessionToken, otpCode);
+        if (!result.success) {
+          setLoginError(result.error || 'Invalid verification code.');
+        }
+      } catch (err: any) {
+        setLoginError(err?.message || 'Verification failed.');
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -249,55 +284,106 @@ const MainApp: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-4 text-left">
-                  {/* Student ID / Username */}
-                  <div>
-                    <label htmlFor="username" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-1.5">
-                      <span>Student ID / Username</span>
-                    </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
-                      <input
-                        id="username"
-                        name="username"
-                        type="text"
-                        autoComplete="username"
-                        value={loginUsername}
-                        onChange={(e) => setLoginUsername(e.target.value)}
-                        placeholder="e.g. CAT2701-01"
-                        className="w-full pl-10 pr-4 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
-                        autoFocus
-                        required
-                      />
-                    </div>
-                  </div>
+                  {loginStep === 'CREDENTIALS' ? (
+                    <>
+                      {/* Student ID / Username */}
+                      <div>
+                        <label htmlFor="username" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-1.5">
+                          <span>Student ID / Username</span>
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                          <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            autoComplete="username"
+                            value={loginUsername}
+                            onChange={(e) => setLoginUsername(e.target.value)}
+                            placeholder="e.g. CAT2701-01"
+                            className="w-full pl-10 pr-4 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
+                            autoFocus
+                            required
+                          />
+                        </div>
+                      </div>
 
-                  {/* Password */}
-                  <div>
-                    <label htmlFor="password" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between mb-1.5">
-                      <span>Password</span>
-                    </label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
-                      <input
-                        id="password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        autoComplete="current-password"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="Enter your account password"
-                        className="w-full pl-10 pr-10 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-3.5 text-zinc-500 hover:text-zinc-300 transition"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                      {/* Password */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label htmlFor="password" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                            Password
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoginError(null);
+                              setForgotPasswordOpen(true);
+                            }}
+                            className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-zinc-500 absolute left-3.5 top-3.5" />
+                          <input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="current-password"
+                            value={loginPassword}
+                            onChange={(e) => setLoginPassword(e.target.value)}
+                            placeholder="Enter your account password"
+                            className="w-full pl-10 pr-10 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-3.5 text-zinc-500 hover:text-zinc-300 transition cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Step 2: 2FA Email OTP Verification */
+                    <div className="space-y-4 animate-in fade-in duration-200">
+                      <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-300 flex items-start gap-2.5">
+                        <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-white block">Two-Factor Email Verification</span>
+                          <span className="text-[11px] text-zinc-400 leading-relaxed block mt-0.5">
+                            A single-use 6-digit code was sent to <strong className="text-indigo-300">{maskedEmail}</strong>.
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="otp" className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                          6-Digit Verification Code
+                        </label>
+                        <input
+                          id="otp"
+                          name="otp"
+                          type="text"
+                          maxLength={6}
+                          autoComplete="one-time-code"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                          placeholder="123456"
+                          className="w-full py-3.5 text-center text-2xl font-mono font-bold tracking-[0.35em] glass-input rounded-xl text-white placeholder:text-zinc-700 transition-all focus:outline-none focus:border-indigo-500"
+                          autoFocus
+                          required
+                        />
+                        <span className="text-[10px] text-zinc-500 mt-1.5 block text-center">
+                          Code expires in 10 minutes &bull; Check your spam folder if delayed
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {loginError && (
                     <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2 animate-in fade-in">
@@ -308,22 +394,47 @@ const MainApp: React.FC = () => {
 
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || (loginStep === 'OTP' && otpCode.length < 6)}
                     className="w-full py-3.5 px-4 btn-primary-glass hover:opacity-95 disabled:opacity-50 font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2 font-mono">
                         <span className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-                        Verifying credentials...
+                        {loginStep === 'CREDENTIALS' ? 'Verifying credentials...' : 'Verifying code...'}
                       </span>
                     ) : (
                       <>
-                        <span>Sign In to Study Desk</span>
+                        <span>{loginStep === 'CREDENTIALS' ? 'Sign In to Study Desk' : 'Verify & Enter Desk'}</span>
                         <ArrowRight className="w-4 h-4" />
                       </>
                     )}
                   </button>
+
+                  {loginStep === 'OTP' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginStep('CREDENTIALS');
+                        setLoginError(null);
+                        setOtpCode('');
+                      }}
+                      className="w-full py-2.5 btn-glass text-zinc-400 hover:text-white text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Credentials</span>
+                    </button>
+                  )}
                 </form>
+
+                <ForgotPasswordModal
+                  isOpen={forgotPasswordOpen}
+                  onClose={() => setForgotPasswordOpen(false)}
+                  onSuccess={(id) => {
+                    if (id) setLoginUsername(id);
+                    setLoginStep('CREDENTIALS');
+                    setLoginError(null);
+                  }}
+                />
 
                 {/* Access Request / Contact Notice */}
                 <div className="p-3 rounded-xl glass-card text-center space-y-1">
