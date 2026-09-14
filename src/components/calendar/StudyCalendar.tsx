@@ -33,16 +33,20 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
   const { scheduleActivities, tasks, personalTasks, taskProgress, toggleTaskCompletion, deleteTask } = useTasks();
   const { isAdmin } = useAuth();
 
-  // Selected date state (defaults to today in schedule: 2026-09-10)
-  const [selectedDate, setSelectedDate] = useState<string>('2026-09-10');
+  // Compute today's date string once — always reflects the real current date
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  // Selected date state (defaults to actual today)
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [selectedTaskForModal, setSelectedTaskForModal] = useState<ClassTask | null>(null);
   const [viewMode, setViewMode] = useState<'month' | 'agenda'>('month');
   const [filterSection, setFilterSection] = useState<'ALL' | CATSection | 'LECTURES' | 'TASKS'>('ALL');
   const [selectedActivity, setSelectedActivity] = useState<ScheduleActivity | null>(null);
 
-  // Month navigation (Fixed around September 2026)
-  const [currentYear, setCurrentYear] = useState<number>(2026);
-  const [currentMonth, setCurrentMonth] = useState<number>(8); // 8 is September (0-indexed)
+  // Month navigation — starts on current real month
+  const [currentYear, setCurrentYear] = useState<number>(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState<number>(today.getMonth()); // 0-indexed
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -83,7 +87,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
         dateStr,
         dayNumber: d,
         isCurrentMonth: true,
-        isToday: dateStr === '2026-09-10',
+        isToday: dateStr === todayStr,
       });
     }
 
@@ -190,14 +194,15 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
         <div className="flex items-center gap-2 self-stretch sm:self-auto">
           <button
             onClick={() => {
-              setCurrentYear(2026);
-              setCurrentMonth(8);
-              setSelectedDate('2026-09-10');
+              const now = new Date();
+              setCurrentYear(now.getFullYear());
+              setCurrentMonth(now.getMonth());
+              setSelectedDate(todayStr);
             }}
             className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Today (Sept 10)</span>
+            <span>Today ({new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })})</span>
           </button>
 
           <div className="bg-zinc-900 p-1 rounded-xl border border-zinc-800 flex items-center text-xs">
@@ -388,7 +393,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
                   })}
                 </h3>
               </div>
-              {selectedDate === '2026-09-10' && (
+              {selectedDate === todayStr && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800/50">
                   Today
                 </span>
@@ -550,7 +555,7 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
         <div className="p-6 rounded-2xl bg-[#09090b] border border-zinc-800 shadow-xl space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
             <div>
-              <h2 className="text-lg font-bold text-white">September 2026 Canonical Session Timeline</h2>
+              <h2 className="text-lg font-bold text-white">Canonical Lecture & Session Timeline</h2>
               <p className="text-xs text-zinc-400 mt-0.5">
                 Batch B-CAT2701 official lecture milestones and CAT 2027 exam orientation.
               </p>
@@ -558,10 +563,11 @@ export const StudyCalendar: React.FC<StudyCalendarProps> = ({ setActiveView, onE
           </div>
 
           <div className="space-y-3">
-            {scheduleActivities.map((session, idx) => {
-              const isPast = session.date < '2026-09-10';
-              const isToday = session.date === '2026-09-10';
-              const isNext = session.date === '2026-09-12';
+            {scheduleActivities.map((session) => {
+              const isPast = session.date < todayStr;
+              const isToday = session.date === todayStr;
+              const nextSession = scheduleActivities.find((s) => s.date > todayStr);
+              const isNext = nextSession?.id === session.id;
 
               return (
                 <div

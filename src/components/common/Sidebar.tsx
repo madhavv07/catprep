@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Calendar className="w-4 h-4" />,
                 'Master Timetable',
                 <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.06] text-zinc-400">
-                  Sept 2026
+                  {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </span>
               )}
 

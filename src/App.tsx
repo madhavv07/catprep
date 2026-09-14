@@ -64,6 +64,13 @@ const MainApp: React.FC = () => {
     setCmdPaletteOpen(false);
   }, [user?.uid]);
 
+  // Guard: Immediately kick non-admin back to dashboard if ever on an admin route
+  useEffect(() => {
+    if (!isAdmin && activeView.startsWith('admin-')) {
+      setActiveView('dashboard');
+    }
+  }, [isAdmin, activeView]);
+
   // Cmd+K / Ctrl+K global shortcut for Command Palette
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -406,6 +413,9 @@ const MainApp: React.FC = () => {
               <ManageAdminsView setActiveView={setActiveView} />
             )}
             {activeView === 'admin-stats' && isAdmin && <TaskStatisticsView setActiveView={setActiveView} />}
+            {!isAdmin && activeView.startsWith('admin-') && (
+              <Dashboard setActiveView={setActiveView} onEditTask={handleEditTask} />
+            )}
           </div>
         </main>
       </div>

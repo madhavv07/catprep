@@ -1,6 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { ChevronRight, LayoutDashboard } from "lucide-react";
 import { ActiveView } from "../../types";
+import { useAuth } from "../../context/AuthContext";
 
 interface BreadcrumbProps {
   activeView: ActiveView;
@@ -27,7 +28,8 @@ const CRUMB_MAP: Record<string, { label: string; parent?: ActiveView; parentLabe
 };
 
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({ activeView, setActiveView }) => {
-  if (activeView === "dashboard") return null;
+  const { isAdmin } = useAuth();
+  if (activeView === "dashboard" || (!isAdmin && activeView.startsWith("admin-"))) return null;
 
   const crumb = CRUMB_MAP[activeView] || { label: activeView };
 
