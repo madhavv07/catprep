@@ -20,6 +20,7 @@ import { useTasks } from '../../context/TaskContext';
 import { useVocab } from '../../context/VocabContext';
 import { TaskCard } from '../tasks/TaskCard';
 import { DueSoonSection } from './DueSoonSection';
+import { PillTabs } from '../common/PillTabs';
 import { ActiveView, Subject, ClassTask } from '../../types';
 
 interface DashboardProps {
@@ -300,35 +301,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView, onEditTask 
             </div>
 
           {/* Animated Pill Tab Switcher */}
-          {(() => {
-            const TABS = [
+          <PillTabs
+            tabs={[
               { key: 'ALL', label: 'All Sections' },
               { key: 'VARC', label: 'VARC' },
               { key: 'DILR', label: 'DILR' },
               { key: 'QUANT', label: 'Quant' },
-            ] as const;
-            const activeIdx = TABS.findIndex(t => t.key === selectedSubject);
-            return (
-              <div className="pill-tabs shrink-0">
-                <div
-                  className="pill-indicator"
-                  style={{
-                    left: `calc(${activeIdx} * (100% / ${TABS.length}) + 3px)`,
-                    width: `calc(100% / ${TABS.length} - 4px)`,
-                  }}
-                />
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setSelectedSubject(tab.key)}
-                    className={`pill-tab ${selectedSubject === tab.key ? 'active' : ''}`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            );
-          })()}
+            ] as const}
+            activeKey={selectedSubject}
+            onChange={setSelectedSubject}
+          />
         </div>
 
           {/* Task List Cards with cursor glow */}
