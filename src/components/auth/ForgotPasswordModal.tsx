@@ -41,7 +41,6 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [otpWarning, setOtpWarning] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -50,7 +49,6 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     setOtpWarning(null);
-    setDevOtp(null);
 
     const cleanId = identifier.trim();
     if (!cleanId) {
@@ -65,8 +63,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
         setResetToken(res.resetToken);
         setMaskedEmail(res.maskedEmail || "your registered email");
         setOtpWarning(res.warning || null);
-        setDevOtp(res.devOtp || null);
-        if (res.devOtp) setOtpCode(res.devOtp);
+        setOtpCode("");
         setNewPassword(generateBreachFreePassword());
         setStep("VERIFY");
       } else {
@@ -124,7 +121,6 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setError(null);
     setSuccessMsg(null);
     setOtpWarning(null);
-    setDevOtp(null);
     onClose();
   };
 
@@ -229,16 +225,11 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold">
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>Email Delivery Notice</span>
+                  <span>Email Notice</span>
                 </div>
                 <p className="text-[11px] text-zinc-400 leading-relaxed">
                   {otpWarning}
                 </p>
-                {devOtp && (
-                  <p className="text-[11px] text-amber-300 font-mono mt-1 pt-1 border-t border-amber-500/20">
-                    Instant Test Code: <strong className="text-white text-xs">{devOtp}</strong>
-                  </p>
-                )}
               </div>
             )}
 

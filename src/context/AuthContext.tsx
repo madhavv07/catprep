@@ -41,7 +41,6 @@ interface AuthContextType {
     maskedEmail?: string;
     emailDelivered?: boolean;
     warning?: string;
-    devOtp?: string;
     error?: string;
   }>;
   verifyLoginOtp: (
@@ -56,7 +55,6 @@ interface AuthContextType {
     maskedEmail?: string;
     emailDelivered?: boolean;
     warning?: string;
-    devOtp?: string;
     error?: string;
   }>;
   verifyAndResetPassword: (
@@ -439,7 +437,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           maskedEmail: data.maskedEmail,
           emailDelivered: data.emailDelivered,
           warning: data.warning,
-          devOtp: data.devOtp,
         };
       }
       return { success: false, error: data.error || 'Invalid credentials.' };
@@ -484,7 +481,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     maskedEmail?: string;
     emailDelivered?: boolean;
     warning?: string;
-    devOtp?: string;
     error?: string;
   }> => {
     try {
@@ -501,7 +497,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           maskedEmail: data.maskedEmail,
           emailDelivered: data.emailDelivered,
           warning: data.warning,
-          devOtp: data.devOtp,
         };
       }
       return { success: false, error: data.error || 'Failed to request reset OTP.' };

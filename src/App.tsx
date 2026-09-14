@@ -66,7 +66,6 @@ const MainApp: React.FC = () => {
   const [maskedEmail, setMaskedEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [otpWarning, setOtpWarning] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   // ✅ CRITICAL FIX: Reset view to dashboard whenever user identity changes
@@ -106,7 +105,6 @@ const MainApp: React.FC = () => {
       setOtpSessionToken('');
       setOtpCode('');
       setOtpWarning(null);
-      setDevOtp(null);
     }
   }, [user]);
 
@@ -123,8 +121,7 @@ const MainApp: React.FC = () => {
             setOtpSessionToken(result.sessionToken || '');
             setMaskedEmail(result.maskedEmail || 'your registered email');
             setOtpWarning(result.warning || null);
-            setDevOtp(result.devOtp || null);
-            setOtpCode(result.devOtp || '');
+            setOtpCode('');
             setLoginStep('OTP');
           }
         } else {
@@ -372,16 +369,11 @@ const MainApp: React.FC = () => {
                         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 space-y-1">
                           <div className="flex items-center gap-1.5 font-bold">
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                            <span>Email Delivery Notice</span>
+                            <span>Email Notice</span>
                           </div>
                           <p className="text-[11px] text-zinc-400 leading-relaxed">
                             {otpWarning}
                           </p>
-                          {devOtp && (
-                            <p className="text-[11px] text-amber-300 font-mono mt-1 pt-1 border-t border-amber-500/20">
-                              Instant Test Code: <strong className="text-white text-xs">{devOtp}</strong>
-                            </p>
-                          )}
                         </div>
                       )}
 

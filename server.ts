@@ -238,9 +238,8 @@ app.post('/api/auth/login/initiate', async (req, res) => {
       warning: !sendResult.success
         ? (sendResult.error || 'Email delivery could not be completed.')
         : isDomainPending
-        ? "Domain DNS verification is pending in Resend. Email was dispatched via fallback test sender (check Spam/Promotions folder)."
+        ? "Please check your Spam or Promotions folder if the code does not appear in your Primary inbox."
         : undefined,
-      devOtp: (!sendResult.success || isDomainPending) ? otpCode : undefined,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message || 'Authentication error' });
@@ -342,9 +341,8 @@ app.post('/api/auth/forgot-password/request-otp', async (req, res) => {
     warning: !sendResult.success
       ? (sendResult.error || 'Email delivery could not be completed.')
       : isDomainPending
-      ? "Domain DNS verification is pending in Resend. Email was dispatched via fallback test sender (check Spam/Promotions folder)."
+      ? "Please check your Spam or Promotions folder if the code does not appear in your Primary inbox."
       : undefined,
-    devOtp: (!sendResult.success || isDomainPending) ? otpCode : undefined,
   });
 });
 
