@@ -263,7 +263,7 @@ const MainApp: React.FC = () => {
                         autoComplete="username"
                         value={loginUsername}
                         onChange={(e) => setLoginUsername(e.target.value)}
-                        placeholder="e.g. CAT2701-01 or madhav"
+                        placeholder="e.g. CAT2701-01"
                         className="w-full pl-10 pr-4 py-3 text-xs glass-input rounded-xl text-white placeholder:text-zinc-600 font-mono transition-all"
                         autoFocus
                         required
