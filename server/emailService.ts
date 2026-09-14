@@ -1,14 +1,73 @@
 import https from "https";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || "";
-// Use official domain if verified, otherwise default to onboarding sender
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "PrepDesk <onboarding@resend.dev>";
+const PRIMARY_FROM = process.env.RESEND_FROM_EMAIL || "PrepDesk <auth@catdesk.online>";
+const FALLBACK_FROM = "PrepDesk <onboarding@resend.dev>";
 
 interface SendOtpOptions {
   to: string;
   code: string;
   type: "LOGIN_2FA" | "FORGOT_PASSWORD";
   studentName?: string;
+}
+
+function callResendApi(
+  from: string,
+  to: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean; error?: string; id?: string; notVerified?: boolean }> {
+  return new Promise((resolve) => {
+    const payload = JSON.stringify({
+      from,
+      to: [to],
+      subject,
+      html,
+    });
+
+    const req = https.request(
+      {
+        hostname: "api.resend.com",
+        path: "/emails",
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let resBody = "";
+        res.on("data", (chunk) => (resBody += chunk));
+        res.on("end", () => {
+          try {
+            const parsed = JSON.parse(resBody);
+            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+              resolve({ success: true, id: parsed.id });
+            } else {
+              const msg = parsed.message || "";
+              const isNotVerified = msg.toLowerCase().includes("not verified");
+              resolve({
+                success: false,
+                notVerified: isNotVerified,
+                error: msg || `Resend error code ${res.statusCode}`,
+              });
+            }
+          } catch (e) {
+            resolve({ success: false, error: "Invalid response from email provider" });
+          }
+        });
+      }
+    );
+
+    req.on("error", (e) => {
+      console.error("[Resend Network Error]:", e.message);
+      resolve({ success: false, error: e.message });
+    });
+
+    req.write(payload);
+    req.end();
+  });
 }
 
 export async function sendOtpEmail({
@@ -101,54 +160,16 @@ export async function sendOtpEmail({
 </html>
   `;
 
-  return new Promise((resolve) => {
-    // Try primary sender, or fallback if needed
-    const payload = JSON.stringify({
-      from: FROM_EMAIL,
-      to: [to],
-      subject: `[${code}] ${title} — PrepDesk`,
-      html: htmlContent,
-    });
+  const subject = `[${code}] ${title} — PrepDesk`;
 
-    const req = https.request(
-      {
-        hostname: "api.resend.com",
-        path: "/emails",
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${RESEND_API_KEY}`,
-          "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(payload),
-        },
-      },
-      (res) => {
-        let resBody = "";
-        res.on("data", (chunk) => (resBody += chunk));
-        res.on("end", () => {
-          try {
-            const parsed = JSON.parse(resBody);
-            if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-              resolve({ success: true, id: parsed.id });
-            } else {
-              console.warn(`[Resend Error ${res.statusCode}]:`, parsed);
-              resolve({
-                success: false,
-                error: parsed.message || `Resend error code ${res.statusCode}`,
-              });
-            }
-          } catch (e) {
-            resolve({ success: false, error: "Invalid response from email provider" });
-          }
-        });
-      }
-    );
+  // 1. Try sending with the official custom domain (auth@catdesk.online)
+  let result = await callResendApi(PRIMARY_FROM, to, subject, htmlContent);
 
-    req.on("error", (e) => {
-      console.error("[Resend Network Error]:", e.message);
-      resolve({ success: false, error: e.message });
-    });
+  // 2. If domain DNS is pending verification in Resend, fall back to onboarding sender seamlessly
+  if (!result.success && result.notVerified) {
+    console.log(`[Resend Notice] Custom domain '${PRIMARY_FROM}' pending verification, retrying via fallback sender '${FALLBACK_FROM}'`);
+    result = await callResendApi(FALLBACK_FROM, to, subject, htmlContent);
+  }
 
-    req.write(payload);
-    req.end();
-  });
+  return result;
 }
