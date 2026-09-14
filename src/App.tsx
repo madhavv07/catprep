@@ -23,7 +23,6 @@ import { ParticleBackground } from './components/common/ParticleBackground';
 import { CommandPalette } from './components/common/CommandPalette';
 import { Breadcrumb } from './components/common/Breadcrumb';
 import { ForgotPasswordModal } from './components/auth/ForgotPasswordModal';
-import { TopNotch } from './components/common/TopNotch';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -166,7 +165,6 @@ const MainApp: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#060608] flex items-center justify-center p-4 sm:p-6 lg:p-10 text-zinc-100 selection:bg-indigo-500 selection:text-white relative overflow-y-auto">
-        <TopNotch />
         {/* Ambient atmospheric glows */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-violet-500/10 rounded-full blur-[140px] pointer-events-none" />
@@ -486,7 +484,6 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-indigo-500/30 selection:text-white">
-      <TopNotch />
       <ParticleBackground />
       <CommandPalette
         open={cmdPaletteOpen}
