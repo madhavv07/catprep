@@ -299,25 +299,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView, onEditTask 
               </p>
             </div>
 
-            {/* macOS Segmented Filter Control */}
-            <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/[0.08] text-xs">
-              {(['ALL', 'VARC', 'DILR', 'QUANT'] as const).map((subj) => (
-                <button
-                  key={subj}
-                  onClick={() => setSelectedSubject(subj)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
-                    selectedSubject === subj
-                      ? 'bg-white/[0.12] text-white shadow-xs font-semibold'
-                      : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  {subj === 'ALL' ? 'All Sections' : subj}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Animated Pill Tab Switcher */}
+          {(() => {
+            const TABS = [
+              { key: 'ALL', label: 'All Sections' },
+              { key: 'VARC', label: 'VARC' },
+              { key: 'DILR', label: 'DILR' },
+              { key: 'QUANT', label: 'Quant' },
+            ] as const;
+            const activeIdx = TABS.findIndex(t => t.key === selectedSubject);
+            return (
+              <div className="pill-tabs shrink-0">
+                <div
+                  className="pill-indicator"
+                  style={{
+                    left: `calc(${activeIdx} * (100% / ${TABS.length}) + 3px)`,
+                    width: `calc(100% / ${TABS.length} - 4px)`,
+                  }}
+                />
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setSelectedSubject(tab.key)}
+                    className={`pill-tab ${selectedSubject === tab.key ? 'active' : ''}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
 
-          {/* Task List Cards */}
+          {/* Task List Cards with cursor glow */}
           {filteredTasks.length === 0 ? (
             <div className="p-12 text-center rounded-2xl glass-card text-zinc-500 space-y-2">
               <CheckSquare className="w-8 h-8 text-zinc-600 mx-auto" />
@@ -325,7 +339,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ setActiveView, onEditTask 
               <p className="text-xs">Select another subject filter or check back later.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 cursor-glow-zone"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                e.currentTarget.style.setProperty('--gx', `${e.clientX - rect.left}px`);
+                e.currentTarget.style.setProperty('--gy', `${e.clientY - rect.top}px`);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty('--gx', '-9999px');
+                e.currentTarget.style.setProperty('--gy', '-9999px');
+              }}
+            >
               {filteredTasks.map((task) => (
                 <TaskCard
                   key={task.id}

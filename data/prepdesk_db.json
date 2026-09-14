@@ -1,6 +1,6 @@
 {
-  "version": 101,
-  "lastModified": "2026-09-13T17:09:32.182Z",
+  "version": 105,
+  "lastModified": "2026-09-14T08:37:56.639Z",
   "users": {
     "admin_madhav": {
       "uid": "admin_madhav",
@@ -11,8 +11,20 @@
       "batchId": "B-CAT2701",
       "mentor": "Administrator",
       "createdAt": "2026-09-01T00:00:00.000Z",
-      "lastLoginAt": "2026-09-13T17:06:53.425Z",
+      "lastLoginAt": "2026-09-14T08:35:21.919Z",
       "passwordHash": "madhav07"
+    },
+    "student_mad_mu0zlkcs": {
+      "uid": "student_mad_mu0zlkcs",
+      "studentId": "MAD",
+      "email": "mad@prepdesk.edu",
+      "displayName": "madhav",
+      "role": "student",
+      "batchId": "B-CAT2701",
+      "mentor": "Administrator",
+      "createdAt": "2026-09-14T08:34:32.908Z",
+      "lastLoginAt": "2026-09-14T08:37:56.639Z",
+      "passwordHash": "CAT27#BGg99"
     }
   },
   "tasks": {},

@@ -18,19 +18,22 @@ import {
   X,
   ExternalLink,
   Clock,
+  Search,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTasks } from '../../context/TaskContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { ThemeSwitcher } from './ThemeSwitcher';
 import { ActiveView } from '../../types';
 
 interface HeaderProps {
   activeView: ActiveView;
   setActiveView: (view: ActiveView) => void;
   onToggleSidebar: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onToggleSidebar, onOpenCommandPalette }) => {
   const { user, signOut, isAdmin } = useAuth();
   const { stats } = useTasks();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
@@ -132,6 +135,22 @@ export const Header: React.FC<HeaderProps> = ({ activeView, setActiveView, onTog
 
         {/* Right Controls */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Cmd+K Command Palette Button */}
+          <button
+            onClick={onOpenCommandPalette}
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium btn-glass text-zinc-400 hover:text-white transition cursor-pointer"
+            title="Open command palette (Ctrl+K)"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline">Search</span>
+            <kbd className="hidden lg:inline-flex text-[10px] font-mono text-zinc-500 bg-white/[0.06] border border-white/[0.08] px-1.5 py-0.5 rounded-md ml-1">
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Theme Switcher */}
+          <ThemeSwitcher />
+
           {/* Quick Schedule / Calendar Button */}
           <button
             onClick={() => setActiveView('calendar')}

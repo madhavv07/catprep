@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { TaskProvider } from './context/TaskContext';
 import { VocabProvider } from './context/VocabContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Header } from './components/common/Header';
 import { Sidebar } from './components/common/Sidebar';
 import { Dashboard } from './components/dashboard/Dashboard';
@@ -18,6 +19,9 @@ import { ProfileView } from './components/profile/ProfileView';
 import { FeedView } from './components/feed/FeedView';
 import { CustomCursor } from './components/common/CustomCursor';
 import { SplashScreen } from './components/common/SplashScreen';
+import { ParticleBackground } from './components/common/ParticleBackground';
+import { CommandPalette } from './components/common/CommandPalette';
+import { Breadcrumb } from './components/common/Breadcrumb';
 import { ActiveView, ClassTask } from './types';
 import {
   Shield,
@@ -43,6 +47,7 @@ const MainApp: React.FC = () => {
     return typeof window !== 'undefined' ? window.innerWidth >= 1024 : true;
   });
   const [taskToEdit, setTaskToEdit] = useState<ClassTask | null>(null);
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState('');
@@ -50,6 +55,18 @@ const MainApp: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Cmd+K / Ctrl+K global shortcut for Command Palette
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdPaletteOpen(open => !open);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Ensure login state resets cleanly whenever user logs out
   useEffect(() => {
@@ -325,10 +342,17 @@ const MainApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col font-sans antialiased text-zinc-100 selection:bg-indigo-500/30 selection:text-white">
+      <ParticleBackground />
+      <CommandPalette
+        open={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+        setActiveView={setActiveView}
+      />
       <Header
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activeView={activeView}
         setActiveView={setActiveView}
+        onOpenCommandPalette={() => setCmdPaletteOpen(true)}
       />
 
       <div className="flex-1 flex max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
@@ -340,6 +364,7 @@ const MainApp: React.FC = () => {
         />
 
         <main className="flex-1 min-w-0">
+          <Breadcrumb activeView={activeView} setActiveView={setActiveView} />
           <div key={activeView} className="animate-route-entrance">
             {activeView === 'dashboard' && (
               <Dashboard setActiveView={setActiveView} onEditTask={handleEditTask} />
@@ -382,16 +407,18 @@ const MainApp: React.FC = () => {
 
 export function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <TaskProvider>
-          <VocabProvider>
-            <CustomCursor />
-            <MainApp />
-          </VocabProvider>
-        </TaskProvider>
-      </NotificationProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <TaskProvider>
+            <VocabProvider>
+              <CustomCursor />
+              <MainApp />
+            </VocabProvider>
+          </TaskProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   CheckCircle2,
   Circle,
@@ -24,6 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getDeadlineInfo, formatDatePretty, formatTime12h } from '../../utils/dateUtils';
 import { parseAllTaskLinks } from '../../utils/linkUtils';
 import { TaskDetailModal } from './TaskDetailModal';
+import { useConfetti } from '../../utils/useConfetti';
 
 interface TaskCardProps {
   task: ClassTask;
@@ -38,6 +39,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const { taskProgress, toggleTaskCompletion, duplicateTask, deleteTask, publishTask, unpublishTask } = useTasks();
   const { isAdmin } = useAuth();
+  const { fire } = useConfetti();
+  const checkBtnRef = useRef<HTMLButtonElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,6 +64,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
+  // Subject left-border accent color
+  const getSubjectBorder = (subject?: Subject) => {
+    switch (subject) {
+      case 'VARC':   return 'border-l-emerald-500/70';
+      case 'DILR':   return 'border-l-cyan-500/70';
+      case 'QUANT':
+      case 'QUANTS': return 'border-l-violet-500/70';
+      default:       return 'border-l-indigo-500/40';
+    }
+  };
+
   // Priority styling
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -75,7 +89,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const wasCompleted = isCompleted;
     toggleTaskCompletion(task.id);
+    // Fire confetti only when marking as DONE (not unchecking)
+    if (!wasCompleted) {
+      fire(checkBtnRef.current || undefined);
+    }
   };
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -103,14 +122,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       onClick={() => setIsModalOpen(true)}
-      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.004] group cursor-pointer ${
+      className={`glass-card rounded-2xl relative overflow-hidden transition-all duration-200 hover:scale-[1.004] group cursor-pointer border-l-4 ${getSubjectBorder(task.section || task.subject)} ${
         isCompleted
           ? 'opacity-70 border-white/[0.04] bg-white/[0.02]'
           : deadline.isOverdue
           ? 'border-rose-500/30 bg-rose-500/[0.03] shadow-lg shadow-rose-950/20'
           : deadline.isDueToday
           ? 'border-amber-500/30 bg-amber-500/[0.03] shadow-lg shadow-amber-950/20'
-          : 'border-white/[0.08] hover:border-white/[0.16]'
+          : 'hover:border-white/[0.16]'
       }`}
     >
       <div className="p-4 sm:p-5">
@@ -119,6 +138,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-center gap-3 flex-1 min-w-0">
             {/* Animated Checkbox Micro-Interaction */}
             <button
+              ref={checkBtnRef}
               onClick={handleToggle}
               className="group/btn shrink-0 mt-0.5 text-zinc-500 hover:text-emerald-400 transition-colors cursor-pointer"
               title={isCompleted ? 'Mark as pending' : 'Mark as completed'}
